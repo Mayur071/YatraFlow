@@ -1,0 +1,66 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/*Root variables*/
+
+:root {
+  --primary:#6C63FF;
+  --secondary:#8B5CF6;
+  --background: #0F172A;
+  --text: #F8FAFC;
+}
+
+/*Body*/
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0F172A, #1E293B);
+  color: var(--text);
+  font-family: Inter, "Segoe UI", sans-serif;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#root {
+  width: 100%;
+}
+
+/* Heading */
+
+h1 {
+  text-align: center;
+  font-size: 4rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+
+  background: linear-gradient(90deg, #6C63FF, #8B5CF6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  animation: fadeIn 0.8s ease;
+}
+
+/* Animation */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+p {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #CBD5E1;
+}
