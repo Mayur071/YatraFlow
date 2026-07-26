@@ -15,6 +15,11 @@ import java.util.Set;
                 @UniqueConstraint(
                         name = "uk_user_email",
                         columnNames = "email"
+                ),
+
+                @UniqueConstraint(
+                        name = "uk_user_phone_number",
+                        columnNames = "phone_number"
                 )
         }
 )
@@ -29,10 +34,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "full_name",nullable = false,length = 100)
-    private String fullName;
+    @Column(name = "first_name", nullable = false, length = 50)
+    private String firstName;
 
-    @Column(name = "email",nullable = false,unique = true,length = 150)
+    @Column(name = "last_name", nullable = false, length = 50)
+    private String lastName;
+
+    @Column(name = "email",nullable = false,length = 150)
     private String email;
 
     @Column(name = "password", nullable = false)
@@ -51,6 +59,21 @@ public class User {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(
+            name = "phone_number",
+            nullable = false,
+            length = 10
+    )
+    private String phoneNumber;
+
+    @Builder.Default
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = false;
+
+    @Builder.Default
+    @Column(name = "account_locked", nullable = false)
+    private Boolean accountLocked = false;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -71,6 +94,7 @@ public class User {
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
+    @PrePersist
     public void prePersist(){
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
@@ -78,6 +102,7 @@ public class User {
     }
 
 
+    @PreUpdate
     public void preUpdate(){
         updatedAt = LocalDateTime.now();
     }
