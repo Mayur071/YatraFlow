@@ -14,7 +14,6 @@ import org.mapstruct.ReportingPolicy;
 public interface AuthMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "password", ignore = true)
     @Mapping(target = "enabled", ignore = true)
     @Mapping(target = "emailVerified", ignore = true)
     @Mapping(target = "accountLocked", ignore = true)
