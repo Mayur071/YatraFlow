@@ -1,30 +1,20 @@
 package com.yatraflow.auth.dto.response;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class RegisterResponse {
+public record RegisterResponse(
 
-    private Long id;
+       Long id,
 
-    private String firstName;
+       String firstName,
 
-    private String lastName;
+       String lastName,
 
-    private String email;
+       String email,
 
-    private String phoneNumber;
+       String phoneNumber
 
-    private String message;
-
-
+){
 
 }

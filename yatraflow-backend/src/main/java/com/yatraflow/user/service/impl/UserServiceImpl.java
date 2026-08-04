@@ -2,6 +2,7 @@ package com.yatraflow.user.service.impl;
 
 import com.yatraflow.exception.BusinessException;
 import com.yatraflow.exception.ResourceNotFoundException;
+import com.yatraflow.exception.UnauthorizedException;
 import com.yatraflow.user.entity.User;
 import com.yatraflow.user.repository.UserRepository;
 import com.yatraflow.user.service.UserService;
@@ -65,7 +66,7 @@ public class UserServiceImpl implements UserService {
                 () -> {
                     log.warn("User not found with email : {}",email);
 
-                    return new ResourceNotFoundException("User not found with email : " + email);
+                    return new UnauthorizedException("Invalid email or password.");
                 }
         );
     }

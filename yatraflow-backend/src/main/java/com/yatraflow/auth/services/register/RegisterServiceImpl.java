@@ -1,4 +1,4 @@
-package com.yatraflow.auth.services;
+package com.yatraflow.auth.services.register;
 
 import com.yatraflow.auth.dto.request.RegisterRequest;
 import com.yatraflow.auth.dto.response.RegisterResponse;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class AuthServiceImpl implements AuthService {
+public class RegisterServiceImpl implements RegisterService {
 
 
     private final UserService userService;
