@@ -4,12 +4,17 @@ import com.yatraflow.auth.dto.request.LoginRequest;
 import com.yatraflow.auth.dto.request.RegisterRequest;
 import com.yatraflow.auth.dto.response.LoginResponse;
 import com.yatraflow.auth.dto.response.RegisterResponse;
+import com.yatraflow.auth.services.login.LoginResult;
 import com.yatraflow.auth.services.login.LoginService;
 import com.yatraflow.auth.services.register.RegisterService;
+import com.yatraflow.security.jwt.JwtProperties;
+import com.yatraflow.security.jwt.JwtService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +30,9 @@ public class AuthController {
     private  final RegisterService registerService;
 
     private final LoginService loginService;
+
+    private final JwtService jwtService;
+    private final JwtProperties jwtProperties;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(
@@ -43,16 +51,26 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @Valid @RequestBody LoginRequest request
-            ) {
+            @Valid @RequestBody LoginRequest request){
 
         log.info("Login request received for email: {}",request.getEmail());
 
-        LoginResponse response = loginService.login(request);
+        LoginResult loginResult = loginService.login(request);
 
-        log.info("User logged in successfully for email: {}",response.email());
+        ResponseCookie accessTokenCookie = ResponseCookie
+                .from("access_token",loginResult.accessToken())
+                .httpOnly(true)
+                .secure(jwtProperties.isCookieSecure())
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(jwtProperties.getAccessTokenExpiration() / 1000)
+                .build();
 
-        return ResponseEntity.ok(response);
+        log.info("Login Completed Successfully for email: {}",request.getEmail());
+
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,accessTokenCookie.toString())
+                .body(loginResult.loginResponse());
+
 
 
     }

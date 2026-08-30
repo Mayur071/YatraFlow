@@ -4,6 +4,7 @@ import com.yatraflow.auth.dto.request.LoginRequest;
 import com.yatraflow.auth.dto.response.LoginResponse;
 import com.yatraflow.exception.ForbiddenException;
 import com.yatraflow.exception.UnauthorizedException;
+import com.yatraflow.security.jwt.JwtService;
 import com.yatraflow.user.entity.User;
 import com.yatraflow.user.service.UserService;
 import jakarta.transaction.Transactional;
@@ -23,9 +24,11 @@ public class LoginServiceImpl implements LoginService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final JwtService jwtService;
+
 
     @Override
-    public LoginResponse login(LoginRequest loginRequest) {
+    public  LoginResult login(LoginRequest loginRequest) {
 
         log.info("Login request received for email: {}",loginRequest.getEmail());
 
@@ -35,10 +38,13 @@ public class LoginServiceImpl implements LoginService {
 
         validateLoginPassword(loginRequest.getPassword(),user.getPassword());
 
-        log.info("User logged in succesfully: {}",user.getEmail());
+        String accessToken = jwtService.generateAccessToken(user);
 
+        log.info("User logged in successfully: {}", user.getEmail());
 
-        return buildLoginResponse(user);
+        LoginResponse loginResponse = buildLoginResponse(user);
+
+        return new LoginResult(loginResponse, accessToken);
     }
 
     // ---------------------------------------------------------
