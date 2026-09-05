@@ -2,6 +2,8 @@ package com.yatraflow.auth.dto.response;
 
 import lombok.*;
 
+import java.util.List;
+
 @Builder
 public record LoginResponse (
 
@@ -13,13 +15,13 @@ public record LoginResponse (
 
         String email,
 
-        String accessToken,
-
-        String refreshToken,
+        List<String> roles,
 
         String tokenType,
 
-        Long expiresIn
+        Long expiresIn,
+
+        Long refreshExpiresIn
 )
 
 {

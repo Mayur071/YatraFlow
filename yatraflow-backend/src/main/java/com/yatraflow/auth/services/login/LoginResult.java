@@ -4,7 +4,8 @@ import com.yatraflow.auth.dto.response.LoginResponse;
 
 public record LoginResult(
         LoginResponse loginResponse,
-        String accessToken
+        String accessToken,
+        String refreshToken
 ) {
 }
 

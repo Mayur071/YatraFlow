@@ -70,7 +70,7 @@ public class RoleServiceImpl implements RoleService {
         validateRoleName(roleName);
 
         if(exists(roleName)) {
-            log.info(" {} already Exists. Skipping ...", roleName);
+            log.info("{} already Exists. Skipping ...", roleName);
             return;
         }
 

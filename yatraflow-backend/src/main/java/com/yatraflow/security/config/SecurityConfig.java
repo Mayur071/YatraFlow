@@ -1,15 +1,19 @@
 package com.yatraflow.security.config;
 
 import com.yatraflow.security.jwt.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableMethodSecurity
@@ -27,7 +31,20 @@ public class SecurityConfig {
         // -------------------------------------------------
         // CSRF
         // -------------------------------------------------
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(
+                                CookieCsrfTokenRepository.withHttpOnlyFalse()
+                        )
+                        .csrfTokenRequestHandler(
+                                new CsrfTokenRequestAttributeHandler()
+                        )
+                        .ignoringRequestMatchers(
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/refresh-token"
+                        )
+                )
+
 
         // -------------------------------------------------
         // Session Management
@@ -45,13 +62,33 @@ public class SecurityConfig {
 
                         //Public Authentication APIs
                         .requestMatchers(
+                                HttpMethod.POST,
                                 "/api/v1/auth/register",
-                                "/api/v1/auth/login"
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/refresh-token",
+                                "/api/v1/auth/logout"
                         ).permitAll()
+
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/auth/csrf"
+                        ).permitAll()
+
+                        // Admin only
+                        .requestMatchers("/api/v1/admin/**")
+                        .hasRole("ADMIN")
+
+                        // User + Admin
+                        .requestMatchers("/api/v1/user/**")
+                        .hasAnyRole("USER","ADMIN")
 
                         //Everything else requires  authentication
                         .anyRequest().authenticated()
                 )
+//
+//                .authorizeHttpRequests(auth -> auth
+//                        .anyRequest().permitAll()
+//                )
 
                 // -------------------------------------------------
                 // Authentication / Authorization Exceptions
@@ -100,6 +137,7 @@ public class SecurityConfig {
 
         return httpSecurity.build();
     }
+
 
 
 

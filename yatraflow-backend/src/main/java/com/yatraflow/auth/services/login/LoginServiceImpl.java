@@ -4,6 +4,7 @@ import com.yatraflow.auth.dto.request.LoginRequest;
 import com.yatraflow.auth.dto.response.LoginResponse;
 import com.yatraflow.exception.ForbiddenException;
 import com.yatraflow.exception.UnauthorizedException;
+import com.yatraflow.security.jwt.JwtProperties;
 import com.yatraflow.security.jwt.JwtService;
 import com.yatraflow.user.entity.User;
 import com.yatraflow.user.service.UserService;
@@ -12,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,11 +29,13 @@ public class LoginServiceImpl implements LoginService {
 
     private final JwtService jwtService;
 
+    private final JwtProperties jwtProperties;
+
 
     @Override
     public  LoginResult login(LoginRequest loginRequest) {
 
-        log.info("Login request received for email: {}",loginRequest.getEmail());
+        log.debug("Authenticating user | email={}", loginRequest.getEmail());
 
         User user = userService.getUserByEmail(loginRequest.getEmail());
 
@@ -40,11 +45,21 @@ public class LoginServiceImpl implements LoginService {
 
         String accessToken = jwtService.generateAccessToken(user);
 
-        log.info("User logged in successfully: {}", user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user);
 
         LoginResponse loginResponse = buildLoginResponse(user);
 
-        return new LoginResult(loginResponse, accessToken);
+        log.info(
+                "LOGIN_SUCCESS userId={} email={} roles={}",
+                user.getId(),
+                user.getEmail(),
+                user.getRoles()
+                        .stream()
+                        .map(role -> role.getName().name())
+                        .toList()
+        );
+
+        return new LoginResult(loginResponse, accessToken, refreshToken);
     }
 
     // ---------------------------------------------------------
@@ -54,14 +69,20 @@ public class LoginServiceImpl implements LoginService {
     private void validateAccountStatus(User user){
 
         if(!user.getEnabled()){
-            log.warn("Login failed. Account disabled: {}",user.getEmail());
+            log.warn(
+                    "Login rejected | reason=ACCOUNT_DISABLED | email={}",
+                    user.getEmail()
+            );
 
             throw new ForbiddenException("Your account is disabled.");
         }
 
         if (user.getAccountLocked()) {
 
-            log.warn("Login failed. Account locked: {}", user.getEmail());
+            log.warn(
+                    "Login rejected | reason=ACCOUNT_LOCKED | email={}",
+                    user.getEmail()
+            );
 
             throw new ForbiddenException("Your account is locked");
         }
@@ -71,7 +92,10 @@ public class LoginServiceImpl implements LoginService {
 
         if(!passwordEncoder.matches(rawPassword,encodePassword)) {
 
-            log.warn("Login failed. Invalid credentials");
+            log.warn(
+                    "Login rejected | reason=INVALID_PASSWORD | email={}"
+
+            );
 
             throw new UnauthorizedException("Invalid username or password.");
         }
@@ -80,12 +104,28 @@ public class LoginServiceImpl implements LoginService {
 
     private LoginResponse buildLoginResponse(User user){
 
+        List<String> roles = user.getRoles()
+                .stream()
+                .map(role -> role.getName().name())
+                .toList();
+
+
         return LoginResponse.builder()
                 .userId(user.getId())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
+                .roles(roles)
+                .tokenType("Bearer")
+                .expiresIn(
+                        jwtProperties.getAccessTokenExpiration() / 1000
+                )
+                .refreshExpiresIn(
+                        jwtProperties.getRefreshTokenExpiration() / 1000
+                )
                 .build();
+
+
     }
 
 }

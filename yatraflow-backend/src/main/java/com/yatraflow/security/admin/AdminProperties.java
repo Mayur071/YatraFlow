@@ -6,10 +6,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "app.domain")
+@ConfigurationProperties(prefix = "app.admin")
 public class AdminProperties {
 
     private String email;
 
     private String password;
+
+    private String phoneNumber;
 }

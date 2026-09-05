@@ -1,9 +1,19 @@
 package com.yatraflow.security.admin;
 
+import com.yatraflow.role.entity.Role;
+import com.yatraflow.role.entity.RoleName;
 import com.yatraflow.role.service.RoleService;
+import com.yatraflow.user.entity.User;
 import com.yatraflow.user.service.UserService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@RequiredArgsConstructor
 public class AdminSeeder implements CommandLineRunner {
 
 
@@ -14,7 +24,7 @@ public class AdminSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    @Transactional
+
     public void run(String... args) {
 
         log.info("Starting admin user seeding...");
@@ -40,6 +50,8 @@ public class AdminSeeder implements CommandLineRunner {
         // Create Admin User
         // ---------------------------------------------------------
 
+
+
         User admin = User.builder()
                 .firstName("System")
                 .lastName("Admin")
@@ -49,7 +61,9 @@ public class AdminSeeder implements CommandLineRunner {
                                 adminProperties.getPassword()
                         )
                 )
-                .phoneNumber(adminProperties.getPhone())
+
+                .phoneNumber(adminProperties.getPhoneNumber())
+
                 .enabled(true)
                 .emailVerified(true)
                 .accountLocked(false)

@@ -35,22 +35,45 @@ public class JwtService {
 
     public String generateAccessToken(User user){
 
-        Instant now = Instant.now();
-        Instant expiration = now.plusMillis(jwtProperties.getAccessTokenExpiration());
+        return generateToken(user,jwtProperties.getAccessTokenExpiration(),"ACCESS");
 
-        List<String> roles = user.getRoles().stream()
+    }
+
+
+    // =========================================================
+    // Generate Refresh Token
+    // =========================================================
+
+    public String generateRefreshToken(User user){
+
+        return generateToken(user, jwtProperties.getRefreshTokenExpiration(),"REFRESH");
+    }
+
+    // =========================================================
+    // Common Token Generator
+    // =========================================================
+
+    public String generateToken(User user,Long expirationMills, String tokenType){
+
+        Instant now = Instant.now();
+        Instant expiration = now.plusMillis(expirationMills);
+
+        List<String> roles = user.getRoles()
+                .stream()
                 .map(role -> role.getName().name())
                 .toList();
 
         return Jwts.builder()
                 .subject(user.getEmail())
                 .claim("userId",user.getId())
-                .claim("roles",roles)
+                .claim("roles", roles)
+                .claim("tokenType", tokenType)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(secretKey)
                 .compact();
     }
+
 
 
     // =========================================================
@@ -107,6 +130,23 @@ public class JwtService {
 
         return username.equals(user.getEmail())
                 && !isTokenExpired(token);
+    }
+
+    // =========================================================
+    // Extract Token Type
+    // =========================================================
+
+    public String extractTokenType(String token){
+
+        Object tokenType = parseClaims(token).get("tokenType");
+
+        if(tokenType == null){
+                throw new UnauthorizedException("Invalid authentication token");
+
+        }
+
+        return String.valueOf(tokenType);
+
     }
 
     // =========================================================
