@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Verify your YatraFlow account</title>
+</head>
+
+<body style="
+    margin: 0;
+    padding: 0;
+    background-color: #f4f6f8;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #1f2937;
+">
+
+<table width="100%"
+       cellpadding="0"
+       cellspacing="0"
+       border="0"
+       style="background-color: #f4f6f8; padding: 40px 15px;">
+
+    <tr>
+        <td align="center">
+
+            <!-- Main Container -->
+            <table width="600"
+                   cellpadding="0"
+                   cellspacing="0"
+                   border="0"
+                   style="
+                       max-width: 600px;
+                       width: 100%;
+                       background-color: #ffffff;
+                       border-radius: 12px;
+                       overflow: hidden;
+                   ">
+
+                <!-- Header -->
+                <tr>
+                    <td align="center"
+                        style="
+                            padding: 28px 30px;
+                            background-color: #111827;
+                        ">
+
+                        <div style="
+                            font-size: 28px;
+                            font-weight: bold;
+                            color: #ffffff;
+                            letter-spacing: 0.5px;
+                        ">
+                            YatraFlow
+                        </div>
+
+                        <div style="
+                            margin-top: 6px;
+                            font-size: 13px;
+                            color: #d1d5db;
+                        ">
+                            Plan. Explore. Travel.
+                        </div>
+
+                    </td>
+                </tr>
+
+
+                <!-- Content -->
+                <tr>
+                    <td style="padding: 40px 40px 30px 40px;">
+
+                        <h1 style="
+                            margin: 0 0 20px 0;
+                            font-size: 24px;
+                            line-height: 32px;
+                            color: #111827;
+                        ">
+                            Verify your email address
+                        </h1>
+
+
+                        <p style="
+                            margin: 0 0 18px 0;
+                            font-size: 16px;
+                            line-height: 26px;
+                            color: #4b5563;
+                        ">
+                            Hi
+                            <strong th:text="${firstName}">User</strong>,
+                        </p>
+
+
+                        <p style="
+                            margin: 0 0 18px 0;
+                            font-size: 16px;
+                            line-height: 26px;
+                            color: #4b5563;
+                        ">
+                            Welcome to <strong>YatraFlow</strong>!
+                            We're excited to have you on board.
+                        </p>
+
+
+                        <p style="
+                            margin: 0 0 28px 0;
+                            font-size: 16px;
+                            line-height: 26px;
+                            color: #4b5563;
+                        ">
+                            Please verify your email address to complete
+                            your registration and activate your account.
+                        </p>
+
+
+                        <!-- Verify Button -->
+                        <table cellpadding="0"
+                               cellspacing="0"
+                               border="0"
+                               width="100%">
+
+                            <tr>
+                                <td align="center">
+
+                                    <a th:href="${verificationUrl}"
+                                       href="#"
+                                       style="
+                                           display: inline-block;
+                                           padding: 14px 30px;
+                                           background-color: #2563eb;
+                                           color: #ffffff;
+                                           text-decoration: none;
+                                           font-size: 16px;
+                                           font-weight: bold;
+                                           border-radius: 8px;
+                                       ">
+                                        Verify My Email
+                                    </a>
+
+                                </td>
+                            </tr>
+
+                        </table>
+
+
+                        <!-- Expiry -->
+                        <p style="
+                            margin: 28px 0 10px 0;
+                            font-size: 14px;
+                            line-height: 22px;
+                            color: #6b7280;
+                        ">
+                            This verification link will expire in
+                            <strong th:text="${expiryMinutes}">
+                                15
+                            </strong>
+                            minutes.
+                        </p>
+
+
+                        <p style="
+                            margin: 0;
+                            font-size: 14px;
+                            line-height: 22px;
+                            color: #6b7280;
+                        ">
+                            For your security, please do not share this
+                            verification link with anyone.
+                        </p>
+
+
+                        <!-- Fallback URL -->
+                        <div style="
+                            margin-top: 28px;
+                            padding: 15px;
+                            background-color: #f9fafb;
+                            border-radius: 8px;
+                            word-break: break-all;
+                        ">
+
+                            <p style="
+                                margin: 0 0 8px 0;
+                                font-size: 13px;
+                                color: #6b7280;
+                            ">
+                                If the button above doesn't work, copy and
+                                paste this link into your browser:
+                            </p>
+
+                            <a th:href="${verificationUrl}"
+                               th:text="${verificationUrl}"
+                               href="#"
+                               style="
+                                   font-size: 13px;
+                                   color: #2563eb;
+                                   text-decoration: none;
+                               ">
+                                Verification Link
+                            </a>
+
+                        </div>
+
+                    </td>
+                </tr>
+
+
+                <!-- Divider -->
+                <tr>
+                    <td style="padding: 0 40px;">
+                        <div style="
+                            height: 1px;
+                            background-color: #e5e7eb;
+                        "></div>
+                    </td>
+                </tr>
+
+
+                <!-- Footer -->
+                <tr>
+                    <td align="center"
+                        style="padding: 25px 30px 30px 30px;">
+
+                        <p style="
+                            margin: 0 0 8px 0;
+                            font-size: 13px;
+                            color: #6b7280;
+                        ">
+                            If you did not create a YatraFlow account,
+                            you can safely ignore this email.
+                        </p>
+
+                        <p style="
+                            margin: 0;
+                            font-size: 12px;
+                            color: #9ca3af;
+                        ">
+                            © 2026 YatraFlow. All rights reserved.
+                        </p>
+
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+
+</table>
+
+</body>
+</html>

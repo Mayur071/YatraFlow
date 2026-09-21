@@ -1,4 +1,4 @@
-package com.yatraflow.notification;
+package com.yatraflow.auth.notification;
 
 public interface EmailService {
 
