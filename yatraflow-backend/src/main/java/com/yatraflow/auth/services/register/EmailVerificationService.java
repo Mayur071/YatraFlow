@@ -7,4 +7,8 @@ public interface EmailVerificationService {
     void createAndSendVerificationEmail(PendingRegistration pendingRegistration);
 
     void verifyEmail(String rawToken);
+
+    void resendVerificationEmail(String email);
+
+
 }

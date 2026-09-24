@@ -15,4 +15,9 @@ public interface PendingRegistrationService {
     PendingRegistration getByEmail(String email);
 
     void deleteExpiredRegistrations();
+
+    boolean existsByEmail(String email);
+
+    void delete(PendingRegistration pendingRegistration);
+
 }

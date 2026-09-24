@@ -13,6 +13,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Optional;
+
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -76,6 +78,11 @@ public class EmailVerificationTokenServiceImpl implements EmailVerificationToken
 
         tokenRepository.deleteByPendingRegistrationId(pendingRegistration.getId());
 
+    }
+
+    @Override
+    public Optional<EmailVerificationToken> getByPendingRegistration(PendingRegistration pendingRegistration) {
+        return tokenRepository.findByPendingRegistrationId(pendingRegistration.getId());
     }
 
     private String generateSecureToken() {

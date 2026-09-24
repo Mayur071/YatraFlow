@@ -3,6 +3,8 @@ package com.yatraflow.auth.services.email;
 import com.yatraflow.auth.entity.EmailVerificationToken;
 import com.yatraflow.auth.entity.PendingRegistration;
 
+import java.util.Optional;
+
 public interface EmailVerificationTokenService {
 
     String createVerificationToken(PendingRegistration pendingRegistration);
@@ -12,4 +14,8 @@ public interface EmailVerificationTokenService {
     void markTokenUsed(EmailVerificationToken token);
 
     void deleteToken(PendingRegistration pendingRegistration);
+
+    Optional<EmailVerificationToken> getByPendingRegistration(
+            PendingRegistration pendingRegistration
+    );
 }

@@ -2,13 +2,10 @@ package com.yatraflow.auth.services.register;
 
 import com.yatraflow.auth.dto.request.RegisterRequest;
 import com.yatraflow.auth.dto.response.RegisterResponse;
-import com.yatraflow.auth.mapper.AuthMapper;
+import com.yatraflow.auth.entity.PendingRegistration;
+import com.yatraflow.auth.services.email.PendingRegistrationService;
 import com.yatraflow.exception.BusinessException;
 import com.yatraflow.exception.ResourceAlreadyExistsException;
-import com.yatraflow.role.entity.Role;
-import com.yatraflow.role.entity.RoleName;
-import com.yatraflow.role.service.RoleService;
-import com.yatraflow.user.entity.User;
 import com.yatraflow.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -16,98 +13,175 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Locale;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
 public class RegisterServiceImpl implements RegisterService {
 
-
     private final UserService userService;
-
-    private final RoleService roleService;
-
     private final PasswordEncoder passwordEncoder;
-
-    private final AuthMapper authMapper;
+    private final PendingRegistrationService pendingRegistrationService;
+    private final EmailVerificationService emailVerificationService;
 
 
     @Override
     public RegisterResponse register(RegisterRequest request) {
 
-        log.info("Registration request received for email: {}", request.getEmail());
+        String email = normalizeEmail(request.getEmail());
+        String phoneNumber = normalizePhoneNumber(request.getPhoneNumber());
 
-        validateEmail(request.getEmail());
+        log.info(
+                "Registration request received | email={}",
+                email
+        );
 
-        validatePhoneNumber(request.getPhoneNumber());
+        // ---------------------------------------------------------
+        // Validation
+        // ---------------------------------------------------------
+
+        validateEmail(email);
+
+        validatePhoneNumber(phoneNumber);
 
         validatePassword(
                 request.getPassword(),
                 request.getConfirmPassword()
         );
 
-        User user = authMapper.toUser(request);
+        // ---------------------------------------------------------
+        // Password hashing
+        // ---------------------------------------------------------
 
-        encodePassword(user);
+        String passwordHash =
+                passwordEncoder.encode(request.getPassword());
 
-        assignDefaultRole(user);
+        // ---------------------------------------------------------
+        // Create temporary registration
+        // ---------------------------------------------------------
 
-        User savedUser = userService.createUser(user);
+        PendingRegistration pendingRegistration =
+                pendingRegistrationService.createPendingRegistration(
+                        email,
+                        passwordHash,
+                        request.getFirstName().trim(),
+                        request.getLastName().trim(),
+                        phoneNumber
+                );
 
-        log.info("User registered successfully with email: {}", savedUser.getEmail());
+        // ---------------------------------------------------------
+        // Create verification token + send verification email
+        // ---------------------------------------------------------
 
-        return authMapper.toRegisterResponse(savedUser);
-    }
-
-
-    private void validateEmail(String email){
-
-        if(userService.existsByEmail(email)){
-
-            log.warn("Registration failed. Email already exists: {}",email);
-
-            throw new ResourceAlreadyExistsException("Email already registered");
-        }
-    }
-
-    private void validatePhoneNumber(String phoneNumber){
-
-        if(userService.existsByPhoneNumber(phoneNumber)){
-
-            log.warn("Registration failed. Phone number is already registered: {}", phoneNumber);
-
-            throw new ResourceAlreadyExistsException("phone number is already exists");
-        }
-    }
-
-    private void validatePassword(String password, String confirmPassword){
-
-        if(!password.equals(confirmPassword)) {
-
-            log.warn("Registration failed. password mismatch");
-
-            throw new BusinessException("\"Password and Confirm Password do not match.");
-        }
-
-    }
-
-    private void encodePassword(User user){
-
-        user.setPassword(
-                passwordEncoder.encode(user.getPassword())
+        emailVerificationService.createAndSendVerificationEmail(
+                pendingRegistration
         );
 
-        log.debug("Password encoded successfully.");
+        log.info(
+                "Registration initiated successfully | email={}",
+                email
+        );
+
+        // User is NOT created yet.
+        return RegisterResponse.builder()
+                .message(
+                        "Registration initiated. Please verify your email to complete registration."
+                )
+                .email(email)
+                .build();
     }
 
 
-    private void assignDefaultRole(User user){
+    // ---------------------------------------------------------
+    // Validation
+    // ---------------------------------------------------------
 
-        Role role = roleService.getRoleByName(RoleName.ROLE_USER);
-        user.getRoles().add(role);
+    private void validateEmail(String email) {
 
-        log.debug("ROLE_USER assigned successfully");
+        // Already registered user
+        if (userService.existsByEmail(email)) {
+
+            log.warn(
+                    "Registration rejected | reason=EMAIL_ALREADY_REGISTERED | email={}",
+                    email
+            );
+
+            throw new ResourceAlreadyExistsException(
+                    "Email already registered"
+            );
+        }
+
+        // Verification already pending
+        if (pendingRegistrationService.existsByEmail(email)) {
+
+            log.warn(
+                    "Registration rejected | reason=EMAIL_VERIFICATION_PENDING | email={}",
+                    email
+            );
+
+            throw new BusinessException(
+                    "Email verification is already pending. Please verify your email."
+            );
+        }
     }
 
+
+    private void validatePhoneNumber(String phoneNumber) {
+
+        if (userService.existsByPhoneNumber(phoneNumber)) {
+
+            log.warn(
+                    "Registration rejected | reason=PHONE_ALREADY_REGISTERED | phone={}",
+                    phoneNumber
+            );
+
+            throw new ResourceAlreadyExistsException(
+                    "Phone number is already registered"
+            );
+        }
+    }
+
+
+    private void validatePassword(
+            String password,
+            String confirmPassword
+    ) {
+
+        if (password == null || confirmPassword == null) {
+
+            throw new BusinessException(
+                    "Password and Confirm Password are required."
+            );
+        }
+
+        if (!password.equals(confirmPassword)) {
+
+            log.warn(
+                    "Registration rejected | reason=PASSWORD_MISMATCH"
+            );
+
+            throw new BusinessException(
+                    "Password and Confirm Password do not match."
+            );
+        }
+    }
+
+
+    // ---------------------------------------------------------
+    // Normalization
+    // ---------------------------------------------------------
+
+    private String normalizeEmail(String email) {
+
+        return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+
+    private String normalizePhoneNumber(String phoneNumber) {
+
+        return phoneNumber.trim();
+    }
 }
 

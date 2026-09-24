@@ -5,15 +5,10 @@ import lombok.*;
 @Builder
 public record RegisterResponse(
 
-       Long id,
+        String message,
 
-       String firstName,
+        String email
 
-       String lastName,
-
-       String email,
-
-       String phoneNumber
 
 ){
 

@@ -4,6 +4,7 @@ import com.yatraflow.auth.entity.PendingRegistration;
 import com.yatraflow.auth.repository.PendingRegistrationRepository;
 import com.yatraflow.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class PendingRegistrationServiceImpl implements PendingRegistrationService{
 
     private final PendingRegistrationRepository pendingRegistrationRepository;
@@ -47,5 +49,24 @@ public class PendingRegistrationServiceImpl implements PendingRegistrationServic
     public void deleteExpiredRegistrations() {
 
         pendingRegistrationRepository.deleteByExpiresAtBefore(LocalDateTime.now());
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsByEmail(String email) {
+        return pendingRegistrationRepository.existsByEmail(email);
+    }
+
+    @Override
+    public void delete(PendingRegistration pendingRegistration) {
+
+        if(pendingRegistration == null){
+            throw new IllegalArgumentException("Pending registration cannot be null");
+        }
+
+        pendingRegistrationRepository.delete(pendingRegistration);
+        log.debug("Pending registration deleted | email={}", pendingRegistration.getEmail());
+
     }
 }

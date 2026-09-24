@@ -11,5 +11,7 @@ public interface EmailVerificationTokenRepository extends JpaRepository<EmailVer
 
     void deleteByPendingRegistrationId(Long pendingRegistrationId);
 
+    Optional<EmailVerificationToken> findByPendingRegistrationId(Long pendingRegistrationId);
+
 
 }

@@ -2,10 +2,12 @@ package com.yatraflow.auth.controller;
 
 import com.yatraflow.auth.dto.request.LoginRequest;
 import com.yatraflow.auth.dto.request.RegisterRequest;
+import com.yatraflow.auth.dto.response.EmailVerificationResponse;
 import com.yatraflow.auth.dto.response.LoginResponse;
 import com.yatraflow.auth.dto.response.RegisterResponse;
 import com.yatraflow.auth.services.login.LoginResult;
 import com.yatraflow.auth.services.login.LoginService;
+import com.yatraflow.auth.services.register.EmailVerificationService;
 import com.yatraflow.auth.services.register.RegisterService;
 import com.yatraflow.exception.ForbiddenException;
 import com.yatraflow.exception.UnauthorizedException;
@@ -39,6 +41,8 @@ public class AuthController {
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
     private final UserService userService;
+
+    private final EmailVerificationService emailVerificationService;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(
@@ -236,4 +240,20 @@ public class AuthController {
                 Map.of("token", csrfToken.getToken())
         );
     }
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<EmailVerificationResponse> verifyEmail(
+            @RequestParam("token") String token
+    ){
+        emailVerificationService.verifyEmail(token);
+
+        return ResponseEntity.ok(
+                new EmailVerificationResponse(
+                        "Email verified successfully. Your YatraFlow account is now active."
+        )
+        );
+    }
+
+
+
 }
