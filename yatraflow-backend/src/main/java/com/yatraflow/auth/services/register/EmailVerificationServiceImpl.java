@@ -33,7 +33,7 @@ import java.util.Optional;
 public class EmailVerificationServiceImpl implements EmailVerificationService  {
 
 
-    private static final String VERIFICATION_POINT = "/api/v1/auth/verify-email";
+    private static final String VERIFICATION_POINT = "/verify-email";
 
     private final EmailVerificationTokenService tokenService;
 
