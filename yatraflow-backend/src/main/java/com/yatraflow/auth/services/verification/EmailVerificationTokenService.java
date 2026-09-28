@@ -1,4 +1,4 @@
-package com.yatraflow.auth.services.email;
+package com.yatraflow.auth.services.verification;
 
 import com.yatraflow.auth.entity.EmailVerificationToken;
 import com.yatraflow.auth.entity.PendingRegistration;

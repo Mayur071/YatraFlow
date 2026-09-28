@@ -1,6 +1,6 @@
 package com.yatraflow.Temp;
 
-import com.yatraflow.auth.notification.EmailService;
+import com.yatraflow.email.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

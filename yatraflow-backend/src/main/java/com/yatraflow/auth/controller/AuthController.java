@@ -2,7 +2,6 @@ package com.yatraflow.auth.controller;
 
 import com.yatraflow.auth.dto.request.LoginRequest;
 import com.yatraflow.auth.dto.request.RegisterRequest;
-import com.yatraflow.auth.dto.response.EmailVerificationResponse;
 import com.yatraflow.auth.dto.response.LoginResponse;
 import com.yatraflow.auth.dto.response.RegisterResponse;
 import com.yatraflow.auth.services.login.LoginResult;
@@ -241,18 +240,6 @@ public class AuthController {
         );
     }
 
-    @GetMapping("/verify-email")
-    public ResponseEntity<EmailVerificationResponse> verifyEmail(
-            @RequestParam("token") String token
-    ){
-        emailVerificationService.verifyEmail(token);
-
-        return ResponseEntity.ok(
-                new EmailVerificationResponse(
-                        "Email verified successfully. Your YatraFlow account is now active."
-        )
-        );
-    }
 
 
 

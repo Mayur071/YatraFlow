@@ -3,7 +3,7 @@ package com.yatraflow.auth.services.register;
 import com.yatraflow.auth.dto.request.RegisterRequest;
 import com.yatraflow.auth.dto.response.RegisterResponse;
 import com.yatraflow.auth.entity.PendingRegistration;
-import com.yatraflow.auth.services.email.PendingRegistrationService;
+import com.yatraflow.auth.services.verification.PendingRegistrationService;
 import com.yatraflow.exception.BusinessException;
 import com.yatraflow.exception.ResourceAlreadyExistsException;
 import com.yatraflow.user.service.UserService;

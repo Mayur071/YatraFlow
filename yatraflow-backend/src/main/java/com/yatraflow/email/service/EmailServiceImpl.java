@@ -1,4 +1,4 @@
-package com.yatraflow.auth.notification;
+package com.yatraflow.email.service;
 
 import com.yatraflow.exception.BusinessException;
 import jakarta.mail.MessagingException;
@@ -14,7 +14,7 @@ import java.io.UnsupportedEncodingException;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class EmailServiceImpl implements EmailService  {
+public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
 
