@@ -147,3 +147,39 @@ select {
   background: var(--color-brand-primary);
   color: #ffffff;
 }
+
+/* Global typography and base styles */
+
+
+html {
+  scroll-behavior: smooth;
+}
+
+body{
+
+  margin: 0;
+  min-width: 320px;
+  font-family: "Inter", sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "manrope", sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
