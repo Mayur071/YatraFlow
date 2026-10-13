@@ -3,14 +3,23 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useTheme } from "../../context/ThemeProvider";
 import YatraFlowLogo from "./YatraFlowLogo";
+import {
+    Plane,
+    Hotel,
+    Train,
+    Bus,
+    Car,
+    Compass,
+} from "lucide-react";
+
 
 const navigationItems = [
-    { label: "Flights", path: "/flights" },
-    { label: "Hotels", path: "/hotels" },
-    { label: "Trains", path: "/trains" },
-    { label: "Buses", path: "/buses" },
-    { label: "Cabs", path: "/cabs" },
-    { label: "Explore", path: "/explore" },
+    { label: "Flights", path: "/flights", icon: Plane },
+    { label: "Hotels", path: "/hotels", icon: Hotel },
+    { label: "Trains", path: "/trains", icon: Train },
+    { label: "Buses", path: "/buses", icon: Bus },
+    { label: "Cabs", path: "/cabs", icon: Car },
+    { label: "Explore", path: "/explore", icon: Compass },
 ];
 
 const Header = () => {
@@ -19,10 +28,10 @@ const Header = () => {
 
     const navigationLinkClass = ({ isActive }: { isActive: boolean }) =>
         [
-            "whitespace-nowrap text-sm font-medium transition-colors duration-200",
+            "inline-flex flex-row items-center justify-center gap-2 whitespace-nowrap text-sm font-semibold leading-none transition-colors duration-200",
             isActive
                 ? "text-brand-primary"
-                : "text-text-secondary hover:text-text-primary",
+                : "text-text-primary hover:text-brand-primary",
         ].join(" ");
 
     return (
@@ -50,7 +59,14 @@ const Header = () => {
                             to={item.path}
                             className={navigationLinkClass}
                         >
-                            {item.label}
+                            <item.icon
+                                size={17}
+                                strokeWidth={1.8}
+                                aria-hidden="true"
+                                className="shrink-0"
+
+                            />
+                            <span>{item.label}</span>
                         </NavLink>
                     ))}
                 </nav>
@@ -180,7 +196,14 @@ const Header = () => {
                                 className={navigationLinkClass}
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                {item.label}
+
+                                <item.icon
+                                    size={17}
+                                    strokeWidth={1.8}
+                                    aria-hidden="true"
+                                    className="shrink-0"
+                                />
+                                <span>{item.label}</span>
                             </NavLink>
                         ))}
 
@@ -212,4 +235,8 @@ const Header = () => {
     );
 };
 
+
+
 export default Header;
+
+

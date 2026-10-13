@@ -1,14 +1,14 @@
+
 @import "tailwindcss";
 
 /* =========================================================
-   YatraFlow Design Tokens
+   YatraFlow Design Tokens — Light Theme
    ========================================================= */
 
 :root {
-
   /* Backgrounds */
   --color-background: #f8fafc;
-  --color-primary: #ffffff;
+  --color-surface: #ffffff;
   --color-surface-soft: #f1f5f9;
 
   /* Text */
@@ -44,26 +44,31 @@
 }
 
 /* =========================================================
-   Dark Theme
+   Dark Theme — Midnight Blue + Electric Blue + Teal
    ========================================================= */
 
 .dark {
-  --color-background: #08111f;
-  --color-surface: #101b2d;
-  --color-surface-soft: #162238;
+  /* Backgrounds */
+  --color-background: #070910;
+  --color-surface: #0d1422;
+  --color-surface-soft: #192943;
 
+  /* Text */
   --color-text-primary: #f8fafc;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
+  --color-text-secondary: #c0cad8;
+  --color-text-muted: #8594ab;
 
-  --color-border: #243247;
-  --color-border-strong: #334155;
+  /* Borders */
+  --color-border: #263754;
+  --color-border-strong: #405675;
 
-  --color-brand-primary: #60a5fa;
-  --color-brand-hover: #3b82f6;
+  /* Brand */
+  --color-brand-primary: #3b82f6;
+  --color-brand-hover: #60a5fa;
   --color-brand-teal: #2dd4bf;
   --color-brand-accent: #fbbf24;
 
+  /* Feedback */
   --color-success: #4ade80;
   --color-warning: #fbbf24;
   --color-danger: #f87171;
@@ -101,7 +106,7 @@
 }
 
 /* =========================================================
-   Global Base
+   Global Base Styles
    ========================================================= */
 
 html {
@@ -116,8 +121,10 @@ body {
 
   background-color: var(--color-background);
   color: var(--color-text-primary);
-
   font-family: var(--font-body);
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 
   transition:
           background-color 200ms ease,
@@ -128,58 +135,77 @@ body {
   min-height: 100vh;
 }
 
-/* Better text rendering */
+/* Headings */
 
-* {
-  box-sizing: border-box;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-brand);
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-/* Selection */
-
-::selection {
-  background: var(--color-brand-primary);
-  color: #ffffff;
-}
-
-/* Global typography and base styles */
-
-
-html {
-  scroll-behavior: smooth;
-}
-
-body{
-
-  margin: 0;
-  min-width: 320px;
-  font-family: "Inter", sans-serif;
-  background-color: var(--color-background);
-  color: var(--color-text-primary);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: "manrope", sans-serif;
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
+/* Consistent sizing and form typography */
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Text selection */
+
+::selection {
+  background: var(--color-brand-primary);
+  color: #ffffff;
+}
+
+
+/* Smooth, continuously moving destination ticker */
+
+.destination-marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(
+          to right,
+          transparent,
+          black 4%,
+          black 96%,
+          transparent
+  );
+}
+
+.destination-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 1rem;
+  animation: destination-marquee 36s linear infinite;
+}
+
+.destination-marquee:hover .destination-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes destination-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .destination-marquee-track {
+    animation: none;
+  }
+}
+

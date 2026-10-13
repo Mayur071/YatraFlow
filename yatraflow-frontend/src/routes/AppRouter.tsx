@@ -2,6 +2,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import PublicLayout from "../layouts/PublicLayout";
 import HeaderOnlyLayout from "../layouts/HeaderOnlyLayout";
+import DestinationTicker from "../components/home/DestinationTicker";
 
 const AppRouter = () => {
     return (
@@ -9,7 +10,7 @@ const AppRouter = () => {
             <Routes>
                 {/* Pages with Header and Footer */}
                 <Route element={<PublicLayout />}>
-                    <Route path="/" element={<div>YatraFlow Home</div>} />
+                    <Route path="/" element={<DestinationTicker />} />
                     <Route path="/login" element={<div>Login</div>} />
                     <Route path="/register" element={<div>Register</div>} />
                     <Route path="/verify-email" element={<div>Verify Email</div>} />
