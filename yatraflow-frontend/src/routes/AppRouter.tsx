@@ -4,16 +4,25 @@ import PublicLayout from "../layouts/PublicLayout";
 import HeaderOnlyLayout from "../layouts/HeaderOnlyLayout";
 import DestinationTicker from "../components/home/DestinationTicker";
 
+import AuthLayout from "../components/auth/AuthLayout";
+import LoginPage from "../pages/auth/LoginPage";
+import RegisterPage from "../pages/auth/RegisterPage";
+
 const AppRouter = () => {
     return (
         <BrowserRouter>
             <Routes>
                 {/* Pages with Header and Footer */}
+                {/* Pages with Header and Footer */}
                 <Route element={<PublicLayout />}>
                     <Route path="/" element={<DestinationTicker />} />
-                    <Route path="/login" element={<div>Login</div>} />
-                    <Route path="/register" element={<div>Register</div>} />
                     <Route path="/verify-email" element={<div>Verify Email</div>} />
+                </Route>
+
+                {/* Authentication pages */}
+                <Route element={<AuthLayout />}>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
                 </Route>
 
                 {/* Pages with Header only */}
