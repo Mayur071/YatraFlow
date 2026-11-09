@@ -126,14 +126,14 @@ const Header = () => {
                     {/* Desktop authentication actions */}
                     <div className="hidden items-center gap-3 xl:flex">
                         <Link
-                            to="/login"
+                            to="/sign-in"
                             className="rounded-lg px-4 py-2.5 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-soft"
                         >
-                            Login
+                            Sign-in
                         </Link>
 
                         <Link
-                            to="/register"
+                            to="/sign-up"
                             className={`rounded-lg px-5 py-2.5 text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
                                 theme === "dark"
                                     ? "bg-brand-primary text-slate-950 hover:bg-brand-hover"
@@ -209,7 +209,7 @@ const Header = () => {
 
                         <div className="flex gap-3 border-t border-border pt-4">
                             <Link
-                                to="/login"
+                                to="/sign-in"
                                 onClick={() => setMobileMenuOpen(false)}
                                 className="flex-1 rounded-lg border border-border px-4 py-2.5 text-center text-sm font-semibold text-text-primary transition-colors hover:bg-surface-soft"
                             >
@@ -217,7 +217,7 @@ const Header = () => {
                             </Link>
 
                             <Link
-                                to="/register"
+                                to="/sign-up"
                                 onClick={() => setMobileMenuOpen(false)}
                                 className={`flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-semibold ${
                                     theme === "dark"

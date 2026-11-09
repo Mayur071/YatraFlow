@@ -21,8 +21,8 @@ const AppRouter = () => {
 
                 {/* Authentication pages */}
                 <Route element={<AuthLayout />}>
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/sign-in" element={<LoginPage />} />
+                    <Route path="/sign-up" element={<RegisterPage />} />
                 </Route>
 
                 {/* Pages with Header only */}

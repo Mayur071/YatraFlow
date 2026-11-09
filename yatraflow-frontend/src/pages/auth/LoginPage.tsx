@@ -167,7 +167,7 @@ const LoginPage = () => {
             <p className="mt-7 text-center text-sm text-text-secondary">
                 New to YatraFlow?{" "}
                 <Link
-                    to="/register"
+                    to="/sign-up"
                     className="font-bold text-brand-primary transition-colors hover:text-brand-hover"
                 >
                     Create an account

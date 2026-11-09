@@ -13,6 +13,7 @@ import {
 
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa6";
+import { registerUser } from "../../services/authServices.ts";
 
 type FieldName =
     | "firstName"
@@ -159,7 +160,7 @@ const RegisterPage = () => {
         }));
     };
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setSubmitted(true);
         setFormStatus("");
@@ -183,14 +184,24 @@ const RegisterPage = () => {
             confirmPassword: true,
         });
 
+        // Stop if frontend validation fails.
         if (Object.values(nextErrors).some(Boolean)) {
             return;
         }
 
-        // UI validation only. The backend API is not connected yet.
-        setFormStatus(
-            "All fields are valid. No account has been created yet because registration is not connected to the backend.",
-        );
+        try {
+            await registerUser(values);
+
+            setFormStatus(
+                "Registration successful! Please check your email for the verification link."
+            );
+        } catch (error) {
+            setFormStatus(
+                error instanceof Error
+                    ? error.message
+                    : "Registration failed. Please try again."
+            );
+        }
     };
 
     const renderError = (field: FieldName) => {
@@ -576,7 +587,7 @@ const RegisterPage = () => {
             <p className="mt-6 text-center text-sm text-text-secondary">
                 Already have an account?{" "}
                 <Link
-                    to="/login"
+                    to="/sign-in"
                     className="font-bold text-brand-primary transition-colors hover:text-brand-hover"
                 >
                     Sign in
