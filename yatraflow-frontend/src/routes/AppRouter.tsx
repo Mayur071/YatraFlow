@@ -1,22 +1,27 @@
 
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+
 import PublicLayout from "../layouts/PublicLayout";
 import HeaderOnlyLayout from "../layouts/HeaderOnlyLayout";
-import DestinationTicker from "../components/home/DestinationTicker";
 
 import AuthLayout from "../components/auth/AuthLayout";
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 
+import HomePage from "../pages/dashboard/HomePage";
+
 const AppRouter = () => {
     return (
         <BrowserRouter>
             <Routes>
-                {/* Pages with Header and Footer */}
+
                 {/* Pages with Header and Footer */}
                 <Route element={<PublicLayout />}>
-                    <Route path="/" element={<DestinationTicker />} />
-                    <Route path="/verify-email" element={<div>Verify Email</div>} />
+                    <Route path="/" element={<HomePage />} />
+                    <Route
+                        path="/verify-email"
+                        element={<div>Verify Email</div>}
+                    />
                 </Route>
 
                 {/* Authentication pages */}
@@ -38,6 +43,7 @@ const AppRouter = () => {
                     {/* Unknown routes */}
                     <Route path="*" element={<div>Page Not Found</div>} />
                 </Route>
+
             </Routes>
         </BrowserRouter>
     );

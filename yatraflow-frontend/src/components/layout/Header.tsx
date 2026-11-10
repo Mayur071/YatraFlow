@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useTheme } from "../../context/ThemeProvider";
 import YatraFlowLogo from "./YatraFlowLogo";
+
 import {
     Plane,
     Hotel,
@@ -10,8 +11,13 @@ import {
     Bus,
     Car,
     Compass,
+    Heart,
+    BriefcaseBusiness,
+    Sun,
+    Moon,
+    Menu,
+    X,
 } from "lucide-react";
-
 
 const navigationItems = [
     { label: "Flights", path: "/flights", icon: Plane },
@@ -24,34 +30,45 @@ const navigationItems = [
 
 const Header = () => {
     const { theme, toggleTheme } = useTheme();
+
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const navigationLinkClass = ({ isActive }: { isActive: boolean }) =>
         [
-            "inline-flex flex-row items-center justify-center gap-2 whitespace-nowrap text-sm font-semibold leading-none transition-colors duration-200",
+            "inline-flex items-center justify-center gap-1.5 whitespace-nowrap",
+            "text-sm font-semibold transition-colors duration-200",
             isActive
                 ? "text-brand-primary"
                 : "text-text-primary hover:text-brand-primary",
         ].join(" ");
 
+    const closeMobileMenu = () => {
+        setMobileMenuOpen(false);
+    };
+
+    const utilityLinkClass =
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-2 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-soft hover:text-brand-primary";
+
     return (
         <header className="sticky top-0 z-50 w-full border-b border-border bg-surface/95 shadow-sm backdrop-blur-xl">
-            <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+
+            {/* Main Header */}
+            <div className="mx-auto flex min-h-[76px] max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 xl:px-8">
 
                 {/* Brand */}
                 <Link
                     to="/"
                     aria-label="YatraFlow home"
                     className="flex shrink-0 items-center"
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={closeMobileMenu}
                 >
-                    <YatraFlowLogo className="h-8 w-auto max-w-[170px] object-contain sm:h-9" />
+                    <YatraFlowLogo className="h-8 w-auto max-w-[160px] object-contain sm:h-9" />
                 </Link>
 
-                {/* Desktop navigation */}
+                {/* Desktop Travel Navigation */}
                 <nav
-                    aria-label="Main navigation"
-                    className="hidden items-center gap-5 xl:flex"
+                    aria-label="Travel navigation"
+                    className="hidden items-center gap-4 xl:flex 2xl:gap-5"
                 >
                     {navigationItems.map((item) => (
                         <NavLink
@@ -64,17 +81,37 @@ const Header = () => {
                                 strokeWidth={1.8}
                                 aria-hidden="true"
                                 className="shrink-0"
-
                             />
+
                             <span>{item.label}</span>
                         </NavLink>
                     ))}
                 </nav>
 
-                {/* Header actions */}
-                <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                {/* Header Actions */}
+                <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
 
-                    {/* Theme toggle */}
+                    {/* Wishlist */}
+                    <Link
+                        to="/wishlist"
+                        className={`${utilityLinkClass} hidden 2xl:inline-flex`}
+                        aria-label="Wishlist"
+                    >
+                        <Heart size={18} strokeWidth={1.8} />
+                        <span>Wishlist</span>
+                    </Link>
+
+                    {/* My Trips */}
+                    <Link
+                        to="/trips"
+                        className={`${utilityLinkClass} hidden 2xl:inline-flex`}
+                        aria-label="My Trips"
+                    >
+                        <BriefcaseBusiness size={18} strokeWidth={1.8} />
+                        <span>My Trips</span>
+                    </Link>
+
+                    {/* Theme Toggle */}
                     <button
                         type="button"
                         onClick={toggleTheme}
@@ -88,53 +125,28 @@ const Header = () => {
                                 ? "Switch to dark theme"
                                 : "Switch to light theme"
                         }
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-text-primary transition-colors hover:bg-surface-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
+                        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-text-primary transition-colors hover:bg-surface-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
                     >
                         {theme === "light" ? (
-                            <svg
-                                aria-hidden="true"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                className="h-5 w-5"
-                            >
-                                <path
-                                    d="M20.9 13A8.5 8.5 0 0 1 11 3.1 8.5 8.5 0 1 0 20.9 13Z"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </svg>
+                            <Moon size={19} strokeWidth={1.8} />
                         ) : (
-                            <svg
-                                aria-hidden="true"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                className="h-5 w-5"
-                            >
-                                <circle cx="12" cy="12" r="4" />
-                                <path
-                                    d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
+                            <Sun size={19} strokeWidth={1.8} />
                         )}
                     </button>
 
-                    {/* Desktop authentication actions */}
-                    <div className="hidden items-center gap-3 xl:flex">
+                    {/* Guest Authentication Actions */}
+                    <div className="hidden items-center gap-2 xl:flex">
+
                         <Link
                             to="/sign-in"
-                            className="rounded-lg px-4 py-2.5 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-soft"
+                            className="whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-soft"
                         >
-                            Sign-in
+                            Sign In
                         </Link>
 
                         <Link
                             to="/sign-up"
-                            className={`rounded-lg px-5 py-2.5 text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                            className={`whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
                                 theme === "dark"
                                     ? "bg-brand-primary text-slate-950 hover:bg-brand-hover"
                                     : "bg-brand-primary text-white hover:bg-brand-hover"
@@ -142,83 +154,100 @@ const Header = () => {
                         >
                             Sign Up
                         </Link>
+
                     </div>
 
-                    {/* Mobile menu button */}
+                    {/* Mobile Menu Button */}
                     <button
                         type="button"
-                        onClick={() => setMobileMenuOpen((open) => !open)}
-                        aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                        onClick={() =>
+                            setMobileMenuOpen((open) => !open)
+                        }
+                        aria-label={
+                            mobileMenuOpen
+                                ? "Close navigation menu"
+                                : "Open navigation menu"
+                        }
                         aria-expanded={mobileMenuOpen}
                         className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border text-text-primary transition-colors hover:bg-surface-soft xl:hidden"
                     >
                         {mobileMenuOpen ? (
-                            <svg
-                                aria-hidden="true"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                className="h-5 w-5"
-                            >
-                                <path d="m6 6 12 12M18 6 6 18" strokeLinecap="round" />
-                            </svg>
+                            <X size={21} />
                         ) : (
-                            <svg
-                                aria-hidden="true"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                className="h-5 w-5"
-                            >
-                                <path
-                                    d="M4 6h16M4 12h16M4 18h16"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
+                            <Menu size={21} />
                         )}
                     </button>
                 </div>
             </div>
 
-            {/* Responsive mobile navigation */}
+            {/* Mobile Navigation */}
             {mobileMenuOpen && (
                 <nav
                     aria-label="Mobile navigation"
                     className="border-t border-border bg-surface px-4 py-5 shadow-lg xl:hidden sm:px-6"
                 >
-                    <div className="mx-auto flex max-w-7xl flex-col gap-4">
-                        {navigationItems.map((item) => (
-                            <NavLink
-                                key={item.path}
-                                to={item.path}
-                                className={navigationLinkClass}
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
+                    <div className="mx-auto flex max-w-7xl flex-col gap-5">
 
-                                <item.icon
-                                    size={17}
-                                    strokeWidth={1.8}
-                                    aria-hidden="true"
-                                    className="shrink-0"
-                                />
-                                <span>{item.label}</span>
-                            </NavLink>
-                        ))}
+                        {/* Travel Services */}
+                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                            {navigationItems.map((item) => (
+                                <NavLink
+                                    key={item.path}
+                                    to={item.path}
+                                    onClick={closeMobileMenu}
+                                    className={navigationLinkClass}
+                                >
+                                    <item.icon
+                                        size={18}
+                                        strokeWidth={1.8}
+                                        aria-hidden="true"
+                                    />
 
+                                    <span>{item.label}</span>
+                                </NavLink>
+                            ))}
+                        </div>
+
+                        <div className="border-t border-border pt-4">
+
+                            {/* Utility Navigation */}
+                            <div className="flex flex-col gap-2">
+
+                                <Link
+                                    to="/wishlist"
+                                    onClick={closeMobileMenu}
+                                    className={utilityLinkClass}
+                                >
+                                    <Heart size={18} />
+                                    Wishlist
+                                </Link>
+
+                                <Link
+                                    to="/trips"
+                                    onClick={closeMobileMenu}
+                                    className={utilityLinkClass}
+                                >
+                                    <BriefcaseBusiness size={18} />
+                                    My Trips
+                                </Link>
+
+                            </div>
+                        </div>
+
+                        {/* Authentication */}
                         <div className="flex gap-3 border-t border-border pt-4">
+
                             <Link
                                 to="/sign-in"
-                                onClick={() => setMobileMenuOpen(false)}
+                                onClick={closeMobileMenu}
                                 className="flex-1 rounded-lg border border-border px-4 py-2.5 text-center text-sm font-semibold text-text-primary transition-colors hover:bg-surface-soft"
                             >
-                                Login
+                                Sign In
                             </Link>
 
                             <Link
                                 to="/sign-up"
-                                onClick={() => setMobileMenuOpen(false)}
+                                onClick={closeMobileMenu}
                                 className={`flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-semibold ${
                                     theme === "dark"
                                         ? "bg-brand-primary text-slate-950"
@@ -227,6 +256,7 @@ const Header = () => {
                             >
                                 Sign Up
                             </Link>
+
                         </div>
                     </div>
                 </nav>
@@ -235,8 +265,4 @@ const Header = () => {
     );
 };
 
-
-
 export default Header;
-
-

@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
     Eye,
     EyeOff,
@@ -12,16 +12,47 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa6";
 
-const LoginPage = () => {
-    const [showPassword, setShowPassword] = useState(false);
+import { loginUser } from "../../services/authServices";
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+const LoginPage = () => {
+    const navigate = useNavigate();
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const [formError, setFormError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        // Backend API integration will be added in a later step.
+
+        setFormError("");
+        setIsSubmitting(true);
+
+        try {
+            await loginUser({
+                email: email.trim(),
+                password,
+            });
+
+            // Backend sets HttpOnly JWT cookies.
+            navigate("/", { replace: true });
+
+        } catch (error) {
+            setFormError(
+                error instanceof Error
+                    ? error.message
+                    : "Login failed. Please try again."
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
         <div>
+            {/* Heading */}
             <div className="mb-8">
                 <p className="text-sm font-semibold tracking-wide text-brand-primary">
                     WELCOME BACK
@@ -36,7 +67,6 @@ const LoginPage = () => {
                 </p>
             </div>
 
-            {/* Social sign-in options — OAuth is not integrated yet */}
             {/* OAuth buttons — not active yet */}
             <div className="grid grid-cols-2 gap-3">
                 <button
@@ -60,14 +90,18 @@ const LoginPage = () => {
                 </button>
             </div>
 
+            {/* Divider */}
             <div className="my-6 flex items-center gap-4">
                 <div className="h-px flex-1 bg-border" />
+
                 <span className="text-xs font-medium uppercase tracking-wider text-text-muted">
-          Or continue with email
-        </span>
+                    Or continue with email
+                </span>
+
                 <div className="h-px flex-1 bg-border" />
             </div>
 
+            {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Email */}
                 <div>
@@ -93,6 +127,10 @@ const LoginPage = () => {
                             placeholder="you@example.com"
                             required
                             maxLength={150}
+                            value={email}
+                            onChange={(event) =>
+                                setEmail(event.currentTarget.value)
+                            }
                             className="w-full min-w-0 bg-transparent py-3 text-sm text-text-primary outline-none placeholder:text-text-muted"
                         />
                     </div>
@@ -132,13 +170,21 @@ const LoginPage = () => {
                             required
                             minLength={8}
                             maxLength={20}
+                            value={password}
+                            onChange={(event) =>
+                                setPassword(event.currentTarget.value)
+                            }
                             className="w-full min-w-0 bg-transparent py-3 text-sm text-text-primary outline-none placeholder:text-text-muted"
                         />
 
                         <button
                             type="button"
-                            onClick={() => setShowPassword((visible) => !visible)}
-                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            onClick={() =>
+                                setShowPassword((visible) => !visible)
+                            }
+                            aria-label={
+                                showPassword ? "Hide password" : "Show password"
+                            }
                             className="shrink-0 rounded-md p-1 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-2 focus-visible:outline-brand-primary"
                         >
                             {showPassword ? (
@@ -150,20 +196,35 @@ const LoginPage = () => {
                     </div>
                 </div>
 
+                {/* API Error */}
+                {formError && (
+                    <p
+                        role="alert"
+                        className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2.5 text-sm text-danger"
+                    >
+                        {formError}
+                    </p>
+                )}
+
                 {/* Submit */}
                 <button
                     type="submit"
-                    className="group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
+                    disabled={isSubmitting}
+                    className="group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                    Sign in
-                    <ArrowRight
-                        size={17}
-                        className="transition-transform group-hover:translate-x-1"
-                        aria-hidden="true"
-                    />
+                    {isSubmitting ? "Signing in..." : "Sign in"}
+
+                    {!isSubmitting && (
+                        <ArrowRight
+                            size={17}
+                            className="transition-transform group-hover:translate-x-1"
+                            aria-hidden="true"
+                        />
+                    )}
                 </button>
             </form>
 
+            {/* Sign Up Link */}
             <p className="mt-7 text-center text-sm text-text-secondary">
                 New to YatraFlow?{" "}
                 <Link
