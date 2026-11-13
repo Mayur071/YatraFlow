@@ -1,7 +1,6 @@
 package com.yatraflow.security.config;
 
 import com.yatraflow.security.jwt.JwtAuthenticationFilter;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -68,8 +67,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/refresh-token",
                                 "/api/v1/test/**",
-                                "/api/v1/auth/verify-email",
-                                "/resend-verification"
+                                "/api/v1/auth/verify-email-otp",
+                                "/api/v1/auth/resend-verification-otp"
                         ).permitAll()
 
                         .requestMatchers(

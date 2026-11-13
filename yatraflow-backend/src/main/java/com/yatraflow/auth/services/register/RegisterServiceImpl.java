@@ -72,12 +72,11 @@ public class RegisterServiceImpl implements RegisterService {
                 );
 
         // ---------------------------------------------------------
-        // Create verification token + send verification email
+        // Create verification Otp + send verification email
         // ---------------------------------------------------------
 
-        emailVerificationService.createAndSendVerificationEmail(
-                pendingRegistration
-        );
+        emailVerificationService.createAndSendVerificationOtp(pendingRegistration);
+
 
         log.info(
                 "Registration initiated successfully | email={}",

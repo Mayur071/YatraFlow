@@ -1,10 +1,10 @@
 package com.yatraflow.auth.services.register;
 
-import com.yatraflow.auth.entity.EmailVerificationToken;
+import com.yatraflow.auth.entity.EmailVerificationOtp;
 import com.yatraflow.auth.entity.PendingRegistration;
 import com.yatraflow.auth.mapper.AuthMapper;
+import com.yatraflow.auth.services.verification.EmailVerificationOtpService;
 import com.yatraflow.email.service.EmailService;
-import com.yatraflow.auth.services.verification.EmailVerificationTokenService;
 import com.yatraflow.auth.services.verification.PendingRegistrationService;
 import com.yatraflow.exception.BusinessException;
 import com.yatraflow.exception.ResourceAlreadyExistsException;
@@ -18,13 +18,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.exceptions.TemplateProcessingException;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.Locale;
 
 @Transactional
 @Service
@@ -32,10 +30,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class EmailVerificationServiceImpl implements EmailVerificationService  {
 
-
-    private static final String VERIFICATION_POINT = "/verify-email";
-
-    private final EmailVerificationTokenService tokenService;
+    private final EmailVerificationOtpService otpService;
 
     private final EmailService emailService;
 
@@ -49,78 +44,269 @@ public class EmailVerificationServiceImpl implements EmailVerificationService  {
 
     private final PendingRegistrationService pendingRegistrationService;
 
+    @Value("${app.email-verification.otp-expiry-minutes:5}")
+    private int otpExpiryMinutes;
 
-
-    @Value("${app.email-verification.base-url:http://localhost:8080}")
-    private String baseUrl;
-
-    @Value("${app.email-verification.expiry-minutes:15}")
-    private int verificationExpiryMinutes;
 
     // =========================================================
-    // CREATE + SEND VERIFICATION EMAIL
+    // CREATE AND SEND OTP
     // =========================================================
 
     @Override
-    public void createAndSendVerificationEmail(PendingRegistration pendingRegistration) {
+    public void createAndSendVerificationOtp(
+            PendingRegistration pendingRegistration
+    ) {
 
-        if(pendingRegistration == null){
-            throw new BusinessException("Pending Registration is required");
+        if (pendingRegistration == null) {
+            throw new BusinessException(
+                    "Pending registration is required."
+            );
         }
 
-        String email = pendingRegistration.getEmail();
+        log.info(
+                "Creating email verification OTP | pendingRegistrationId={}",
+                pendingRegistration.getId()
+        );
 
-        log.info("Creating email verification request | email={}", email);
+        String rawOtp = otpService.createOtp(pendingRegistration);
+
+        sendVerificationOtpEmail(pendingRegistration, rawOtp);
+
+        log.info(
+                "Verification OTP email sent | pendingRegistrationId={}",
+                pendingRegistration.getId()
+        );
+    }
+
+
+    // =========================================================
+    // VERIFY EMAIL OTP
+    // =========================================================
+
+    @Override
+    public boolean verifyEmailOtp(String email, String otp) {
+
+        String normalizedEmail = normalizeEmail(email);
+
+        if (normalizedEmail.isBlank()) {
+            throw new BusinessException("Email is required.");
+        }
+
+        if (otp == null || !otp.matches("\\d{6}")) {
+            throw new BusinessException(
+                    "A valid 6-digit verification OTP is required."
+            );
+        }
+
+        log.info(
+                "Email OTP verification initiated | email={}",
+                normalizedEmail
+        );
 
         // -----------------------------------------------------
-        // 1. Generate secure verification token
+        // 1. Check existing user
         // -----------------------------------------------------
 
-        String rawToken = tokenService.createVerificationToken(pendingRegistration);
+        if (userService.existsByEmail(normalizedEmail)) {
+
+            throw new ResourceAlreadyExistsException(
+                    "Email is already registered."
+            );
+        }
 
         // -----------------------------------------------------
-        // 2. Build verification URL
+        // 2. Retrieve pending registration
         // -----------------------------------------------------
 
-        String verificationUrl = UriComponentsBuilder
-                .fromUriString(baseUrl)
-                .path(VERIFICATION_POINT)
-                .queryParam("token",rawToken)
-                .toUriString();
+        PendingRegistration pendingRegistration =
+                pendingRegistrationService.getByEmail(normalizedEmail);
 
         // -----------------------------------------------------
-        // 3. Prepare Thymeleaf context
+        // 3. Retrieve and validate OTP record
         // -----------------------------------------------------
 
+        EmailVerificationOtp verificationOtp =
+                otpService.getOtpForVerification(pendingRegistration);
+
+        // -----------------------------------------------------
+        // 4. Compare submitted OTP with stored hash
+        // -----------------------------------------------------
+
+        boolean validOtp = otpService.matchesOtp(
+                otp,
+                verificationOtp.getOtpHash()
+        );
+
+        if (!validOtp) {
+
+            otpService.recordFailedAttempt(verificationOtp);
+
+            log.warn(
+                    "Email OTP verification failed | pendingRegistrationId={}",
+                    pendingRegistration.getId()
+            );
+
+            // Returning false allows the transaction to commit
+            // the failed-attempt counter.
+            return false;
+        }
+
+        // -----------------------------------------------------
+        // 5. Defensive duplicate check
+        // -----------------------------------------------------
+
+        if (userService.existsByEmail(normalizedEmail)) {
+
+            throw new ResourceAlreadyExistsException(
+                    "Email is already registered."
+            );
+        }
+
+        // -----------------------------------------------------
+        // 6. Convert PendingRegistration into User
+        // -----------------------------------------------------
+
+        User user = authMapper.toUser(pendingRegistration);
+
+        if (user == null) {
+            throw new BusinessException(
+                    "Unable to complete registration."
+            );
+        }
+
+        // -----------------------------------------------------
+        // 7. Assign default USER role
+        // -----------------------------------------------------
+
+        Role userRole = roleService.getRoleByName(
+                RoleName.ROLE_USER
+        );
+
+        user.getRoles().add(userRole);
+
+        // -----------------------------------------------------
+        // 8. Persist verified User
+        // -----------------------------------------------------
+
+        User savedUser = userService.createUser(user);
+
+        // -----------------------------------------------------
+        // 9. Invalidate and clean up OTP records
+        // -----------------------------------------------------
+
+        otpService.markOtpUsed(verificationOtp);
+
+        otpService.deleteOtp(pendingRegistration);
+
+        // -----------------------------------------------------
+        // 10. Delete temporary registration
+        // -----------------------------------------------------
+
+        pendingRegistrationService.delete(pendingRegistration);
+
+        log.info(
+                "Email verification completed successfully | userId={}",
+                savedUser.getId()
+        );
+
+        return true;
+    }
+
+
+    // =========================================================
+    // RESEND VERIFICATION OTP
+    // =========================================================
+
+    @Override
+    public void resendVerificationOtp(String email) {
+
+        String normalizedEmail = normalizeEmail(email);
+
+        if (normalizedEmail.isBlank()) {
+            throw new BusinessException("Email is required.");
+        }
+
+        log.info(
+                "Resend verification OTP requested | email={}",
+                normalizedEmail
+        );
+
+        // -----------------------------------------------------
+        // 1. Check whether email is already registered
+        // -----------------------------------------------------
+
+        if (userService.existsByEmail(normalizedEmail)) {
+
+            throw new BusinessException(
+                    "Email is already verified."
+            );
+        }
+
+        // -----------------------------------------------------
+        // 2. Retrieve pending registration
+        // -----------------------------------------------------
+
+        PendingRegistration pendingRegistration =
+                pendingRegistrationService.getByEmail(normalizedEmail);
+
+        // -----------------------------------------------------
+        // 3. Generate fresh OTP with cooldown and rate limits
+        // -----------------------------------------------------
+
+        String rawOtp = otpService.resendOtp(pendingRegistration);
+
+        // -----------------------------------------------------
+        // 4. Send fresh OTP through SMTP
+        // -----------------------------------------------------
+
+        sendVerificationOtpEmail(pendingRegistration, rawOtp);
+
+        log.info(
+                "Verification OTP resent successfully | pendingRegistrationId={}",
+                pendingRegistration.getId()
+        );
+    }
+
+
+
+    // =========================================================
+    // SEND OTP EMAIL
+    // =========================================================
+
+    private void sendVerificationOtpEmail(
+            PendingRegistration pendingRegistration,
+            String rawOtp
+    ) {
 
         Context context = new Context();
 
-        context.setVariable("firstName",pendingRegistration.getFirstName());
-        context.setVariable("verificationUrl",verificationUrl);
-        context.setVariable("expiryMinutes",verificationExpiryMinutes);
+        context.setVariable(
+                "firstName",
+                pendingRegistration.getFirstName()
+        );
 
-        // -----------------------------------------------------
-        // 4. Render HTML template
-        // -----------------------------------------------------
+        context.setVariable("otp", rawOtp);
+
+        context.setVariable(
+                "expiryMinutes",
+                otpExpiryMinutes
+        );
 
         final String htmlContent;
 
         try {
 
-            htmlContent =
-                    templateEngine.process(
-                            "email/email-verification",
-                            context
-                    );
+            htmlContent = templateEngine.process(
+                    "email/email-verification",
+                    context
+            );
 
-        } catch (
-                TemplateProcessingException e
-        ) {
+        } catch (TemplateProcessingException exception) {
 
             log.error(
-                    "Failed to render verification email template | email={}",
-                    email,
-                    e
+                    "Failed to render OTP email template | pendingRegistrationId={}",
+                    pendingRegistration.getId(),
+                    exception
             );
 
             throw new BusinessException(
@@ -128,248 +314,26 @@ public class EmailVerificationServiceImpl implements EmailVerificationService  {
             );
         }
 
-        // -----------------------------------------------------
-        // 5. Send HTML email
-        // -----------------------------------------------------
-
         emailService.sendEmail(
-                email,
-                "Verify your YatraFlow account",
+                pendingRegistration.getEmail(),
+                "Your YatraFlow Email Verification Code",
                 htmlContent
         );
-
-        log.info(
-                "Verification email initiated successfully | email={}",
-                email
-        );
     }
+
 
     // =========================================================
-    // VERIFY EMAIL
+    // NORMALIZATION
     // =========================================================
 
-    @Override
-    public void verifyEmail(String rawToken) {
+    private String normalizeEmail(String email) {
 
-        log.info("Email verification request received.");
-
-        // -----------------------------------------------------
-        // 1. Validate input
-        // -----------------------------------------------------
-
-        if (rawToken == null || rawToken.isBlank()) {
-
-            throw new BusinessException(
-                    "Verification token is required."
-            );
+        if (email == null) {
+            return "";
         }
 
-        // -----------------------------------------------------
-        // 2. Validate token
-        //
-        // TokenService handles:
-        // - SHA-256 hashing
-        // - token lookup
-        // - used-token validation
-        // - expiry validation
-        // -----------------------------------------------------
-
-        EmailVerificationToken verificationToken =
-                tokenService.getValidateToken(rawToken);
-
-        // -----------------------------------------------------
-        // 3. Get pending registration
-        // -----------------------------------------------------
-
-        PendingRegistration pendingRegistration =
-                verificationToken.getPendingRegistration();
-
-        if (pendingRegistration == null) {
-
-            log.error(
-                    "No pending registration associated with verification token."
-            );
-
-            throw new BusinessException(
-                    "Pending registration not found."
-            );
-        }
-
-        String email = pendingRegistration.getEmail();
-
-        // -----------------------------------------------------
-        // 4. Defensive duplicate check
-        // -----------------------------------------------------
-
-        if (userService.existsByEmail(email)) {
-
-            log.warn(
-                    "Verification rejected. User already exists | email={}",
-                    email
-            );
-
-            throw new ResourceAlreadyExistsException(
-                    "Email already registered."
-            );
-        }
-
-        // -----------------------------------------------------
-        // 5. Convert PendingRegistration -> User
-        // -----------------------------------------------------
-
-        User user =
-                authMapper.toUser(
-                        pendingRegistration
-                );
-
-        if (user == null) {
-
-            log.error(
-                    "Failed to create User from PendingRegistration | email={}",
-                    email
-            );
-
-            throw new BusinessException(
-                    "Unable to complete registration."
-            );
-        }
-
-        // -----------------------------------------------------
-        // 6. Assign default role
-        //
-        // RoleService is intentionally used here because the
-        // actual User is created only after email verification.
-        // -----------------------------------------------------
-
-        Role userRole =
-                roleService.getRoleByName(
-                        RoleName.ROLE_USER
-                );
-
-        user.getRoles().add(userRole);
-
-        // -----------------------------------------------------
-        // 7. Persist verified User
-        //
-        // AuthMapper sets emailVerified=true.
-        // -----------------------------------------------------
-
-        User savedUser =
-                userService.createUser(user);
-
-        // -----------------------------------------------------
-        // 8. Remove verification token
-        //
-        // Successful verification means the token must never
-        // be usable again.
-        // -----------------------------------------------------
-
-        tokenService.deleteToken(
-                pendingRegistration
-        );
-
-        log.info(
-                "Email verification completed successfully | email={} | userId={}",
-                savedUser.getEmail(),
-                savedUser.getId()
-        );
+        return email.trim().toLowerCase(Locale.ROOT);
     }
-
-    @Override
-    @Transactional
-    public void resendVerificationEmail(String email) {
-
-        log.info(
-                "Resend verification request received | email={}",
-                email
-        );
-
-        if (email == null || email.isBlank()) {
-            throw new BusinessException(
-                    "Email is required."
-            );
-        }
-
-        String normalizedEmail =
-                email.trim().toLowerCase(java.util.Locale.ROOT);
-
-        // ---------------------------------------------------------
-        // 1. Check whether user is already registered
-        // ---------------------------------------------------------
-
-        if (userService.existsByEmail(normalizedEmail)) {
-
-            log.warn(
-                    "Resend verification rejected | user already registered | email={}",
-                    normalizedEmail
-            );
-
-            throw new BusinessException(
-                    "Email is already verified."
-            );
-        }
-
-        // ---------------------------------------------------------
-        // 2. Find pending registration
-        // ---------------------------------------------------------
-
-        PendingRegistration pendingRegistration =
-                pendingRegistrationService.getByEmail(
-                        normalizedEmail
-                );
-
-        // ---------------------------------------------------------
-        // 3. Find existing verification token
-        // ---------------------------------------------------------
-
-       Optional<EmailVerificationToken> existingToken =
-                tokenService.getByPendingRegistration(
-                        pendingRegistration
-                );
-
-        // ---------------------------------------------------------
-        // 4. If an existing token is still valid, don't issue
-        //    another one.
-        // ---------------------------------------------------------
-
-        if (existingToken.isPresent()) {
-
-            EmailVerificationToken token =
-                    existingToken.get();
-
-            if (token.getExpiresAt().isAfter(LocalDateTime.now())) {
-
-                log.warn(
-                        "Resend verification rejected | existing token still valid | email={}",
-                        normalizedEmail
-                );
-
-                throw new BusinessException(
-                        "Your current verification link is still valid."
-                );
-            }
-
-            // Existing token has expired → remove it.
-            tokenService.deleteToken(
-                    pendingRegistration
-            );
-        }
-
-        // ---------------------------------------------------------
-        // 5. Create a fresh token and send a new verification email
-        // ---------------------------------------------------------
-
-        createAndSendVerificationEmail(
-                pendingRegistration
-        );
-
-        log.info(
-                "Verification email resent successfully | email={}",
-                normalizedEmail
-        );
-    }
-
-
 
 }
 

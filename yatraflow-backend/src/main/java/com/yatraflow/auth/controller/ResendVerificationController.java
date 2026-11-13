@@ -10,26 +10,38 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+@RestController
 @RequiredArgsConstructor
 @Slf4j
 @RequestMapping("/api/v1/auth")
 public class ResendVerificationController {
 
+
     private final EmailVerificationService emailVerificationService;
 
-    @PostMapping("/resend-verification")
-    public ResponseEntity<ResendVerificationResponse> resendVerification(
+    // =========================================================
+    // RESEND EMAIL VERIFICATION OTP
+    // =========================================================
+
+    @PostMapping("/resend-verification-otp")
+    public ResponseEntity<ResendVerificationResponse> resendVerificationOtp(
             @Valid @RequestBody ResendVerificationRequest request
     ) {
 
-        emailVerificationService.resendVerificationEmail(
+        log.info(
+                "Resend verification OTP request received | email={}",
+                request.getEmail()
+        );
+
+        emailVerificationService.resendVerificationOtp(
                 request.getEmail()
         );
 
         return ResponseEntity.ok(
                 new ResendVerificationResponse(
-                        "A new verification email has been sent successfully."
+                        "A new verification OTP has been sent successfully."
                 )
         );
     }

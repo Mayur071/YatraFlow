@@ -4,11 +4,15 @@ import com.yatraflow.auth.entity.PendingRegistration;
 
 public interface EmailVerificationService {
 
-    void createAndSendVerificationEmail(PendingRegistration pendingRegistration);
+    // Generate OTP and send verification email
+    void createAndSendVerificationOtp(PendingRegistration pendingRegistration);
 
-    void verifyEmail(String rawToken);
+    // Verify submitted OTP and complete user registration.
+    boolean verifyEmailOtp(String email, String otp);
 
-    void resendVerificationEmail(String email);
+    // Generate and send a new OTP.
+    void resendVerificationOtp(String email);
+
 
 
 }

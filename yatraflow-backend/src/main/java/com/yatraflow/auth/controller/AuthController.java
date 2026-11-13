@@ -53,7 +53,7 @@ public class AuthController {
         RegisterResponse response = registerService.register(request);
 
         log.info(
-                "User registration completed | userId={} | email={}",
+                "User registration completed | email={}",
                 response.email()
         );
 
