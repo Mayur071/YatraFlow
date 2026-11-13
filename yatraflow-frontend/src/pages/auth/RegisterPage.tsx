@@ -1,6 +1,5 @@
-
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
     UserRound,
     Mail,
@@ -9,6 +8,7 @@ import {
     Eye,
     EyeOff,
     ArrowRight,
+    AlertCircle,
 } from "lucide-react";
 
 import { FcGoogle } from "react-icons/fc";
@@ -114,6 +114,8 @@ const inputClassName =
     "w-full min-w-0 bg-transparent py-2.5 text-sm text-text-primary outline-none placeholder:text-text-muted";
 
 const RegisterPage = () => {
+    const navigate = useNavigate();
+
     const [values, setValues] =
         useState<RegisterFormValues>(initialValues);
 
@@ -192,9 +194,12 @@ const RegisterPage = () => {
         try {
             await registerUser(values);
 
-            setFormStatus(
-                "Registration successful! Please check your email for the verification link."
-            );
+            // Redirect to OTP verification after successful registration.
+            navigate("/verify-email", {
+                state: {
+                    email: values.email.trim().toLowerCase(),
+                },
+            });
         } catch (error) {
             setFormStatus(
                 error instanceof Error
@@ -237,7 +242,6 @@ const RegisterPage = () => {
                 </p>
             </div>
 
-            {/* OAuth placeholders — not active yet */}
             {/* OAuth buttons — not active yet */}
             <div className="grid grid-cols-2 gap-3">
                 <button
@@ -264,8 +268,8 @@ const RegisterPage = () => {
             <div className="my-5 flex items-center gap-4">
                 <div className="h-px flex-1 bg-border" />
                 <span className="text-xs font-medium uppercase tracking-wider text-text-muted">
-          Or sign up with email
-        </span>
+                    Or sign up with email
+                </span>
                 <div className="h-px flex-1 bg-border" />
             </div>
 
@@ -408,8 +412,8 @@ const RegisterPage = () => {
                         />
 
                         <span className="shrink-0 border-r border-border pr-3 text-sm text-text-secondary">
-              +91
-            </span>
+                            +91
+                        </span>
 
                         <input
                             id="phoneNumber"
@@ -560,14 +564,27 @@ const RegisterPage = () => {
                     {renderError("confirmPassword")}
                 </div>
 
-                {/* Validation-only status */}
+                {/* Validation status */}
+                {/* Registration status */}
                 {formStatus && (
-                    <p
-                        role="status"
-                        className="rounded-lg border border-brand-primary/30 bg-brand-primary/10 px-3 py-2.5 text-sm leading-5 text-text-primary"
+                    <div
+                        role="alert"
+                        className="flex w-full items-center gap-3 rounded-md
+                   border border-danger/40
+                   bg-danger/10
+                   px-4 py-3
+                   text-sm font-medium text-danger"
                     >
-                        {formStatus}
-                    </p>
+                        <AlertCircle
+                            size={18}
+                            className="shrink-0"
+                            aria-hidden="true"
+                        />
+
+                        <span className="leading-5 font-normal tracking-[0.1px]">
+            {formStatus}
+        </span>
+                    </div>
                 )}
 
                 {/* Submit */}

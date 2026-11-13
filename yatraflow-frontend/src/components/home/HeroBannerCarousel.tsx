@@ -97,9 +97,6 @@ const HeroBannerCarousel = () => {
         );
     };
 
-    const goToBanner = (index: number) => {
-        setActiveIndex(index);
-    };
 
     useEffect(() => {
         if (isPaused) return;

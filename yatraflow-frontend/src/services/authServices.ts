@@ -4,7 +4,10 @@ import { apiRequest, setCsrfToken } from "./apiClient.ts";
 // Base authentication API path
 const AUTH_API = "/api/v1/auth";
 
-// Request types
+// =========================================================
+// REQUEST TYPES
+// =========================================================
+
 export interface RegisterRequest {
     firstName: string;
     lastName: string;
@@ -19,7 +22,19 @@ export interface LoginRequest {
     password: string;
 }
 
-// Response types
+export interface EmailOtpVerificationRequest {
+    email: string;
+    otp: string;
+}
+
+export interface ResendVerificationOtpRequest {
+    email: string;
+}
+
+// =========================================================
+// RESPONSE TYPES
+// =========================================================
+
 export interface RegisterResponse {
     email: string;
     message?: string;
@@ -45,10 +60,14 @@ export interface CsrfTokenResponse {
     token: string;
 }
 
-// 1. Register
+// =========================================================
+// 1. REGISTER
+// =========================================================
+
 export function registerUser(
     payload: RegisterRequest
 ): Promise<RegisterResponse> {
+
     return apiRequest<RegisterResponse>(`${AUTH_API}/register`, {
         method: "POST",
         headers: {
@@ -58,10 +77,14 @@ export function registerUser(
     });
 }
 
-// 2. Login
+// =========================================================
+// 2. LOGIN
+// =========================================================
+
 export function loginUser(
     payload: LoginRequest
 ): Promise<LoginResponse> {
+
     return apiRequest<LoginResponse>(`${AUTH_API}/login`, {
         method: "POST",
         headers: {
@@ -71,8 +94,12 @@ export function loginUser(
     });
 }
 
-// 3. Get CSRF Token
+// =========================================================
+// 3. GET CSRF TOKEN
+// =========================================================
+
 export async function getCsrfToken(): Promise<CsrfTokenResponse> {
+
     const response = await apiRequest<CsrfTokenResponse>(
         `${AUTH_API}/csrf`
     );
@@ -82,15 +109,23 @@ export async function getCsrfToken(): Promise<CsrfTokenResponse> {
     return response;
 }
 
-// 4. Refresh Access Token
+// =========================================================
+// 4. REFRESH ACCESS TOKEN
+// =========================================================
+
 export function refreshAccessToken(): Promise<LoginResponse> {
+
     return apiRequest<LoginResponse>(`${AUTH_API}/refresh-token`, {
         method: "POST",
     });
 }
 
-// 5. Logout
+// =========================================================
+// 5. LOGOUT
+// =========================================================
+
 export async function logoutUser(): Promise<void> {
+
     await getCsrfToken();
 
     await apiRequest<void>(`${AUTH_API}/logout`, {
@@ -100,31 +135,46 @@ export async function logoutUser(): Promise<void> {
     setCsrfToken(null);
 }
 
-// 6. Verify Email
-export function verifyEmail(
-    token: string
-): Promise<AuthMessageResponse> {
-    const params = new URLSearchParams({ token });
+// =========================================================
+// 6. VERIFY EMAIL USING OTP
+// =========================================================
 
-    return apiRequest<AuthMessageResponse>(
-        `${AUTH_API}/verify-email?${params.toString()}`
-    );
-}
-
-// 7. Resend Verification Email
-export async function resendVerificationEmail(
-    email: string
+export async function verifyEmailOtp(
+    payload: EmailOtpVerificationRequest
 ): Promise<AuthMessageResponse> {
+
     await getCsrfToken();
 
     return apiRequest<AuthMessageResponse>(
-        `${AUTH_API}/resend-verification`,
+        `${AUTH_API}/verify-email-otp`,
         {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ email }),
+            body: JSON.stringify(payload),
+        }
+    );
+}
+
+// =========================================================
+// 7. RESEND EMAIL VERIFICATION OTP
+// =========================================================
+
+export async function resendVerificationOtp(
+    payload: ResendVerificationOtpRequest
+): Promise<AuthMessageResponse> {
+
+    await getCsrfToken();
+
+    return apiRequest<AuthMessageResponse>(
+        `${AUTH_API}/resend-verification-otp`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
         }
     );
 }

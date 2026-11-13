@@ -65,6 +65,61 @@ function extractErrorMessage(data: unknown, status: number): string {
     return `Request failed with status ${status}`;
 }
 
+
+async function ensureCsrfToken(): Promise<string> {
+    // First check whether the CSRF cookie already exists.
+    const cookieToken = getCookie(CSRF_COOKIE_NAME);
+
+    if (cookieToken) {
+        csrfTokenFromResponse = cookieToken;
+        return cookieToken;
+    }
+
+    // Reuse the token if it was already received.
+    if (csrfTokenFromResponse) {
+        return csrfTokenFromResponse;
+    }
+
+    // Request a fresh CSRF token from Spring Security.
+    const response = await fetch("/api/v1/auth/csrf", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+            Accept: "application/json",
+        },
+    });
+
+    const data: unknown = await response.json().catch(() => null);
+
+    if (!response.ok) {
+        throw new ApiError(
+            extractErrorMessage(data, response.status),
+            response.status,
+            data
+        );
+    }
+
+    const body = data as Record<string, unknown> | null;
+
+    const token =
+        body && typeof body.token === "string"
+            ? body.token
+            : getCookie(CSRF_COOKIE_NAME);
+
+    if (!token) {
+        throw new ApiError(
+            "Unable to initialize CSRF protection.",
+            response.status,
+            data
+        );
+    }
+
+    csrfTokenFromResponse = token;
+
+    return token;
+}
+
+
 export async function apiRequest<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -78,12 +133,9 @@ export async function apiRequest<T>(
     const safeMethods = ["GET", "HEAD", "OPTIONS", "TRACE"];
 
     if (!safeMethods.includes(method)) {
-        const csrfToken =
-            getCookie(CSRF_COOKIE_NAME) ?? csrfTokenFromResponse;
+        const csrfToken = await ensureCsrfToken();
 
-        if (csrfToken && !headers.has(CSRF_HEADER_NAME)) {
-            headers.set(CSRF_HEADER_NAME, csrfToken);
-        }
+        headers.set(CSRF_HEADER_NAME, csrfToken);
     }
 
     const response = await fetch(endpoint, {

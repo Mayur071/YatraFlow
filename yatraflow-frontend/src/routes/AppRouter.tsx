@@ -9,6 +9,7 @@ import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 
 import HomePage from "../pages/dashboard/HomePage";
+import EmailOtpVerificationPage from "../pages/auth/EmailOtpVerificationPage";
 
 const AppRouter = () => {
     return (
@@ -18,17 +19,19 @@ const AppRouter = () => {
                 {/* Pages with Header and Footer */}
                 <Route element={<PublicLayout />}>
                     <Route path="/" element={<HomePage />} />
-                    <Route
-                        path="/verify-email"
-                        element={<div>Verify Email</div>}
-                    />
+
                 </Route>
 
                 {/* Authentication pages */}
                 <Route element={<AuthLayout />}>
                     <Route path="/sign-in" element={<LoginPage />} />
                     <Route path="/sign-up" element={<RegisterPage />} />
+                    <Route
+                        path="/verify-email"
+                        element={<EmailOtpVerificationPage />}
+                    />
                 </Route>
+
 
                 {/* Pages with Header only */}
                 <Route element={<HeaderOnlyLayout />}>
