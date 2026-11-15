@@ -30,7 +30,7 @@ public class EmailServiceImpl implements EmailService {
 
 
             helper.setFrom(
-                    "no-reply@yatraflow.in",
+                    "yatraflow.notifications@gmail.com",
                     "YatraFlow"
             );
 

@@ -43,10 +43,10 @@ public class User {
     @Column(name = "email",nullable = false,length = 150)
     private String email;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password")
     private String password;
 
-    @Column(name = "enabled",nullable = false)
+    @Column(name = "enabled")
     @Builder.Default
     private Boolean enabled = true;
 
@@ -62,7 +62,6 @@ public class User {
 
     @Column(
             name = "phone_number",
-            nullable = false,
             length = 10
     )
     private String phoneNumber;

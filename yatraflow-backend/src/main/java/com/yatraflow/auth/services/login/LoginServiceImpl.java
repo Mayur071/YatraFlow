@@ -2,6 +2,7 @@ package com.yatraflow.auth.services.login;
 
 import com.yatraflow.auth.dto.request.LoginRequest;
 import com.yatraflow.auth.dto.response.LoginResponse;
+import com.yatraflow.exception.BusinessException;
 import com.yatraflow.exception.ForbiddenException;
 import com.yatraflow.exception.UnauthorizedException;
 import com.yatraflow.security.jwt.JwtProperties;
@@ -98,6 +99,17 @@ public class LoginServiceImpl implements LoginService {
             );
 
             throw new UnauthorizedException("Invalid username or password.");
+        }
+
+        if(encodePassword == null){
+
+            throw  new UnauthorizedException("Invalid email or password");
+        }
+
+        if (rawPassword == null || rawPassword.isBlank()) {
+            throw new BusinessException(
+                    "Password is required."
+            );
         }
 
     }

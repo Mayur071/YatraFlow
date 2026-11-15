@@ -35,7 +35,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String uri = request.getRequestURI();
 
-        return uri.startsWith("/api/v1/auth/");
+        return uri.startsWith("/api/v1/auth/")
+                || uri.startsWith("/oauth2")
+                || uri.startsWith("/login/oauth2");
     }
 
     @Override
@@ -60,7 +62,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if(SecurityContextHolder.getContext().getAuthentication() == null){
                 User user = userService.getUserByEmail(username);
 
-                if(jwtService.isTokenValid(token,user)) {
+                if (Boolean.TRUE.equals(user.getEnabled())
+                        && !Boolean.TRUE.equals(user.getAccountLocked())
+                        && jwtService.isTokenValid(token, user)) {
 
                     List<SimpleGrantedAuthority> authorities = jwtService.extractRoles(token)
                             .stream()
@@ -85,7 +89,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
 
-            response.getWriter().write(" \"{\\\"error\\\":\\\"Unauthorized\\\",\\\"message\\\":\\\"Invalid or expired authentication token.\\\"}\"");
+            response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"Invalid or expired authentication token.\"}");
 
             return;
         }

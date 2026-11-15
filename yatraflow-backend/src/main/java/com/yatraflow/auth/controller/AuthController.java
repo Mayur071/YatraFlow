@@ -137,6 +137,11 @@ public class AuthController {
 
         User user =  userService.getUserByEmail(email);
 
+        if (!"REFRESH".equals(jwtService.extractTokenType(refreshToken))
+                || !jwtService.extractUserId(refreshToken).equals(user.getId())) {
+            throw new UnauthorizedException("Invalid refresh token.");
+        }
+
         // Validate account
 
         if(!user.getEnabled()){

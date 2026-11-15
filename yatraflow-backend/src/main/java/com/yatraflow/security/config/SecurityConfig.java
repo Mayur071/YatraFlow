@@ -1,8 +1,14 @@
+
 package com.yatraflow.security.config;
 
+import com.yatraflow.oauth2.handler.OAuth2SuccessHandler;
+import com.yatraflow.oauth2.service.GitHubOAuth2UserService;
+import com.yatraflow.oauth2.service.GoogleOidcUserService;
 import com.yatraflow.security.jwt.JwtAuthenticationFilter;
+
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,15 +27,21 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    private final GoogleOidcUserService googleOidcUserService;
+
+    private final GitHubOAuth2UserService gitHubOAuth2UserService;
+
+    private final GoogleOidcUserService getGoogleOidcUserService;
+
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity)
+            throws Exception {
 
         httpSecurity
 
-        // -------------------------------------------------
-        // CSRF
-        // -------------------------------------------------
+                // CSRF
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(
                                 CookieCsrfTokenRepository.withHttpOnlyFalse()
@@ -45,22 +57,21 @@ public class SecurityConfig {
                         )
                 )
 
+                // Session Management
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                )
 
-        // -------------------------------------------------
-        // Session Management
-        // -------------------------------------------------
-
-                .sessionManagement(session -> session.sessionCreationPolicy(
-                        SessionCreationPolicy.STATELESS
-                ))
-
-        // -------------------------------------------------
-        // Authorization
-        // -------------------------------------------------
-
+                // Authorization
                 .authorizeHttpRequests(auth -> auth
 
-                        //Public Authentication APIs
+                        // OAuth2 endpoints
+                        .requestMatchers(
+                                "/oauth2/**",
+                                "/login/oauth2/**"
+                        ).permitAll()
+
+                        // Public Authentication APIs
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/v1/auth/register",
@@ -82,56 +93,43 @@ public class SecurityConfig {
 
                         // User + Admin
                         .requestMatchers("/api/v1/user/**")
-                        .hasAnyRole("USER","ADMIN")
+                        .hasAnyRole("USER", "ADMIN")
 
-                        //Everything else requires  authentication
                         .anyRequest().authenticated()
                 )
-//
-//                .authorizeHttpRequests(auth -> auth
-//                        .anyRequest().permitAll()
-//                )
 
-                // -------------------------------------------------
-                // Authentication / Authorization Exceptions
-                // -------------------------------------------------
-
+                // Exception Handling
                 .exceptionHandling(exception -> exception
-
-                        // No authentication / invalid authentication
-                        .authenticationEntryPoint(
-                                (request, response, ex) -> {
-                                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                                    response.setContentType("application/json");
-                                    response.getWriter().write(
-                                            "{\"error\":\"Unauthorized\",\"message\":\"Authentication is required.\"}"
-                                    );
-                                }
-                        )
-
-                        // Authenticated but insufficient permission
-                        .accessDeniedHandler(
-                                (request, response, ex) -> {
-                                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                                    response.setContentType("application/json");
-                                    response.getWriter().write(
-                                            "{\"error\":\"Forbidden\",\"message\":\"You do not have permission to access this resource.\"}"
-                                    );
-                                }
-                        )
+                        .authenticationEntryPoint((request, response, ex) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write(
+                                    "{\"error\":\"Unauthorized\",\"message\":\"Authentication is required.\"}"
+                            );
+                        })
+                        .accessDeniedHandler((request, response, ex) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write(
+                                    "{\"error\":\"Forbidden\",\"message\":\"You do not have permission to access this resource.\"}"
+                            );
+                        })
                 )
 
-        // -------------------------------------------------
-        // Disable default authentication mechanisms
-        // -------------------------------------------------
-
+                // Disable default authentication
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
 
-        // -------------------------------------------------
-        // JWT Filter
-        // -------------------------------------------------
+                // OAuth2 Login
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(gitHubOAuth2UserService)
+                                .oidcUserService(googleOidcUserService)
+                        )
+                        .successHandler(oAuth2SuccessHandler)
+                )
 
+                // JWT Filter
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
@@ -139,8 +137,4 @@ public class SecurityConfig {
 
         return httpSecurity.build();
     }
-
-
-
-
 }
