@@ -10,6 +10,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
@@ -72,8 +74,33 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User getCurrentUser() {
-        throw new UnsupportedOperationException("Current user is not implemented yet.");
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+
+            log.warn("Unauthenticated user attempted to access current user details.");
+
+            throw new UnauthorizedException("User is not authenticated.");
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (!(principal instanceof User authenticatedUser)) {
+            throw new UnauthorizedException("Invalid authentication principal.");
+        }
+
+        log.debug("Fetching current user with ID: {}", authenticatedUser.getId());
+
+        return userRepository.findByEmailWithRoles(authenticatedUser.getEmail())
+                .orElseThrow(() ->
+                        new UnauthorizedException("Authenticated user not found.")
+                );
     }
 
     @Override

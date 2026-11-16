@@ -8,6 +8,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -191,5 +193,19 @@ public class JwtService {
             throw new UnauthorizedException("Invalid authentication token.");
         }
 
+
+    }
+
+    @Bean
+    public FilterRegistrationBean<JwtAuthenticationFilter>
+    jwtAuthenticationFilterRegistration(
+            JwtAuthenticationFilter filter) {
+
+        FilterRegistrationBean<JwtAuthenticationFilter> registration =
+                new FilterRegistrationBean<>(filter);
+
+        registration.setEnabled(false);
+
+        return registration;
     }
 }

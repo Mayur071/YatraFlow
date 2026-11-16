@@ -40,12 +40,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 || uri.startsWith("/login/oauth2");
     }
 
+
+
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException{
+
+        log.info("JWT Filter Executed | URI: {}", request.getRequestURI());
+
+        String token1 = extractTokenFromCookie(request);
+
+        log.info("Access Token Cookie Present: {}", token1 != null);
+
 
         String token = extractTokenFromCookie(request);
 
@@ -58,6 +68,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try{
             String username = jwtService.extractUsername(token);
+
+            log.info("JWT Username Extracted: {}", username);
 
             if(SecurityContextHolder.getContext().getAuthentication() == null){
                 User user = userService.getUserByEmail(username);
@@ -77,6 +89,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder
                             .getContext()
                             .setAuthentication(authentication);
+
+                    log.info("Security Context Authentication Set: {}",
+                            SecurityContextHolder.getContext().getAuthentication() != null);
 
                     log.debug("JWT authentication successful for user: {}" ,username);
                 }

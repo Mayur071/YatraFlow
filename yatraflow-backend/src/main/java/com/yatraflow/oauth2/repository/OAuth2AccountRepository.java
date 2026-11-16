@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
+
 public interface OAuth2AccountRepository extends JpaRepository<OAuth2Account, Long> {
 
 
