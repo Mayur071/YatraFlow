@@ -12,10 +12,11 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa6";
 
-import { loginUser } from "../../services/authServices";
+import { useAuth } from "../../hooks/useAuth";
 
 const LoginPage = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
@@ -31,12 +32,11 @@ const LoginPage = () => {
         setIsSubmitting(true);
 
         try {
-            await loginUser({
+            await login({
                 email: email.trim(),
                 password,
             });
 
-            // Backend sets HttpOnly JWT cookies.
             navigate("/", { replace: true });
 
         } catch (error) {
@@ -67,13 +67,15 @@ const LoginPage = () => {
                 </p>
             </div>
 
-            {/* OAuth buttons — not active yet */}
+            {/* OAuth buttons — Active now */}
             <div className="grid grid-cols-2 gap-3">
                 <button
                     type="button"
-                    disabled
-                    title="Google sign-in is coming soon"
-                    className="inline-flex min-h-11 cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm font-semibold text-text-secondary opacity-70"
+                    onClick={() => {
+                        window.location.href =
+                            "http://localhost:8080/oauth2/authorization/google";
+                    }}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-hover"
                 >
                     <FcGoogle size={18} aria-hidden="true" />
                     <span>Continue with Google</span>
@@ -81,14 +83,17 @@ const LoginPage = () => {
 
                 <button
                     type="button"
-                    disabled
-                    title="GitHub sign-in is coming soon"
-                    className="inline-flex min-h-11 cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm font-semibold text-text-secondary opacity-70"
+                    onClick={() => {
+                        window.location.href =
+                            "http://localhost:8080/oauth2/authorization/github";
+                    }}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-hover"
                 >
                     <FaGithub size={18} aria-hidden="true" />
                     <span>Continue with GitHub</span>
                 </button>
             </div>
+
 
             {/* Divider */}
             <div className="my-6 flex items-center gap-4">

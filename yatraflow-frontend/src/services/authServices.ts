@@ -1,6 +1,7 @@
 
 import { apiRequest, setCsrfToken } from "./apiClient.ts";
 
+
 // Base authentication API path
 const AUTH_API = "/api/v1/auth";
 
@@ -15,6 +16,15 @@ export interface RegisterRequest {
     phoneNumber: string;
     password: string;
     confirmPassword: string;
+}
+
+export interface  CurrentUserResponse {
+
+    userId: number | string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    roles: string[];
 }
 
 export interface LoginRequest {
@@ -177,4 +187,14 @@ export async function resendVerificationOtp(
             body: JSON.stringify(payload),
         }
     );
+}
+
+
+// =========================================================
+// 8. GET CURRENT AUTHENTICATED USER
+// =========================================================
+
+export function getCurrentUser(): Promise<CurrentUserResponse> {
+
+    return apiRequest<CurrentUserResponse>("/api/v1/user/me");
 }

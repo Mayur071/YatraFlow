@@ -7,13 +7,17 @@ import HeaderOnlyLayout from "../layouts/HeaderOnlyLayout";
 import AuthLayout from "../components/auth/AuthLayout";
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
+import { AuthProvider } from "../context/AuthProvider";
 
 import HomePage from "../pages/dashboard/HomePage";
 import EmailOtpVerificationPage from "../pages/auth/EmailOtpVerificationPage";
 
+import OAuthSuccessPage from "../pages/auth/OAuthSuccessPage";
+
 const AppRouter = () => {
     return (
         <BrowserRouter>
+            <AuthProvider>
             <Routes>
 
                 {/* Pages with Header and Footer */}
@@ -29,6 +33,10 @@ const AppRouter = () => {
                     <Route
                         path="/verify-email"
                         element={<EmailOtpVerificationPage />}
+                    />
+                    <Route
+                        path="/oauth2/success"
+                        element={<OAuthSuccessPage />}
                     />
                 </Route>
 
@@ -48,7 +56,11 @@ const AppRouter = () => {
                 </Route>
 
             </Routes>
+          </AuthProvider>
         </BrowserRouter>
+
+
+
     );
 };
 
