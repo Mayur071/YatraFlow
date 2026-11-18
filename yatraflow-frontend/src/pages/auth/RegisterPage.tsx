@@ -1,3 +1,4 @@
+
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -11,8 +12,6 @@ import {
     AlertCircle,
 } from "lucide-react";
 
-import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa6";
 import { registerUser } from "../../services/authServices.ts";
 
 type FieldName =
@@ -103,7 +102,7 @@ const validateField = (
 
 const fieldClassName = (hasError: boolean) =>
     [
-        "flex min-h-11 items-center gap-3 rounded-xl border bg-surface px-3.5",
+        "flex min-h-11 items-center gap-3 rounded-lg border bg-surface px-3.5",
         "transition-colors focus-within:ring-2 focus-within:ring-brand-primary/15",
         hasError
             ? "border-danger focus-within:border-danger"
@@ -240,37 +239,6 @@ const RegisterPage = () => {
                 <p className="mt-3 text-sm leading-6 text-text-secondary">
                     Join YatraFlow and make your next trip memorable.
                 </p>
-            </div>
-
-            {/* OAuth buttons — not active yet */}
-            <div className="grid grid-cols-2 gap-3">
-                <button
-                    type="button"
-                    disabled
-                    title="Google sign-up is coming soon"
-                    className="inline-flex min-h-11 cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm font-semibold text-text-secondary opacity-70"
-                >
-                    <FcGoogle size={18} aria-hidden="true" />
-                    <span>Google</span>
-                </button>
-
-                <button
-                    type="button"
-                    disabled
-                    title="GitHub sign-up is coming soon"
-                    className="inline-flex min-h-11 cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm font-semibold text-text-secondary opacity-70"
-                >
-                    <FaGithub size={18} aria-hidden="true" />
-                    <span>GitHub</span>
-                </button>
-            </div>
-
-            <div className="my-5 flex items-center gap-4">
-                <div className="h-px flex-1 bg-border" />
-                <span className="text-xs font-medium uppercase tracking-wider text-text-muted">
-                    Or sign up with email
-                </span>
-                <div className="h-px flex-1 bg-border" />
             </div>
 
             <form noValidate onSubmit={handleSubmit} className="space-y-4">
@@ -564,16 +532,11 @@ const RegisterPage = () => {
                     {renderError("confirmPassword")}
                 </div>
 
-                {/* Validation status */}
                 {/* Registration status */}
                 {formStatus && (
                     <div
                         role="alert"
-                        className="flex w-full items-center gap-3 rounded-md
-                   border border-danger/40
-                   bg-danger/10
-                   px-4 py-3
-                   text-sm font-medium text-danger"
+                        className="flex w-full items-center gap-3 rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm font-medium text-danger"
                     >
                         <AlertCircle
                             size={18}
@@ -582,17 +545,18 @@ const RegisterPage = () => {
                         />
 
                         <span className="leading-5 font-normal tracking-[0.1px]">
-            {formStatus}
-        </span>
+                            {formStatus}
+                        </span>
                     </div>
                 )}
 
                 {/* Submit */}
                 <button
                     type="submit"
-                    className="group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
+                    className="group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
                 >
                     Create account
+
                     <ArrowRight
                         size={17}
                         className="transition-transform group-hover:translate-x-1"
@@ -601,6 +565,7 @@ const RegisterPage = () => {
                 </button>
             </form>
 
+            {/* Sign In Link */}
             <p className="mt-6 text-center text-sm text-text-secondary">
                 Already have an account?{" "}
                 <Link

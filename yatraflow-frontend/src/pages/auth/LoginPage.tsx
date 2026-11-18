@@ -38,7 +38,6 @@ const LoginPage = () => {
             });
 
             navigate("/", { replace: true });
-
         } catch (error) {
             setFormError(
                 error instanceof Error
@@ -49,6 +48,15 @@ const LoginPage = () => {
             setIsSubmitting(false);
         }
     };
+
+    const fieldClassName =
+        "flex min-h-12 items-center gap-3 rounded-lg border border-border bg-surface px-3.5 transition-colors focus-within:border-brand-primary focus-within:ring-2 focus-within:ring-brand-primary/15";
+
+    const inputClassName =
+        "w-full min-w-0 bg-transparent py-3 text-sm text-text-primary outline-none placeholder:text-text-muted";
+
+    const oauthButtonClassName =
+        "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-text-primary transition-all duration-200 hover:border-brand-primary/60 hover:bg-surface-hover hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary active:scale-[0.98]";
 
     return (
         <div>
@@ -67,7 +75,7 @@ const LoginPage = () => {
                 </p>
             </div>
 
-            {/* OAuth buttons — Active now */}
+            {/* OAuth Login */}
             <div className="grid grid-cols-2 gap-3">
                 <button
                     type="button"
@@ -75,7 +83,7 @@ const LoginPage = () => {
                         window.location.href =
                             "http://localhost:8080/oauth2/authorization/google";
                     }}
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-hover"
+                    className={oauthButtonClassName}
                 >
                     <FcGoogle size={18} aria-hidden="true" />
                     <span>Continue with Google</span>
@@ -87,13 +95,12 @@ const LoginPage = () => {
                         window.location.href =
                             "http://localhost:8080/oauth2/authorization/github";
                     }}
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-hover"
+                    className={oauthButtonClassName}
                 >
                     <FaGithub size={18} aria-hidden="true" />
                     <span>Continue with GitHub</span>
                 </button>
             </div>
-
 
             {/* Divider */}
             <div className="my-6 flex items-center gap-4">
@@ -117,7 +124,7 @@ const LoginPage = () => {
                         Email address
                     </label>
 
-                    <div className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-surface px-3.5 transition-colors focus-within:border-brand-primary focus-within:ring-2 focus-within:ring-brand-primary/15">
+                    <div className={fieldClassName}>
                         <Mail
                             size={18}
                             className="shrink-0 text-text-muted"
@@ -136,7 +143,7 @@ const LoginPage = () => {
                             onChange={(event) =>
                                 setEmail(event.currentTarget.value)
                             }
-                            className="w-full min-w-0 bg-transparent py-3 text-sm text-text-primary outline-none placeholder:text-text-muted"
+                            className={inputClassName}
                         />
                     </div>
                 </div>
@@ -159,7 +166,7 @@ const LoginPage = () => {
                         </Link>
                     </div>
 
-                    <div className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-surface px-3.5 transition-colors focus-within:border-brand-primary focus-within:ring-2 focus-within:ring-brand-primary/15">
+                    <div className={fieldClassName}>
                         <LockKeyhole
                             size={18}
                             className="shrink-0 text-text-muted"
@@ -179,7 +186,7 @@ const LoginPage = () => {
                             onChange={(event) =>
                                 setPassword(event.currentTarget.value)
                             }
-                            className="w-full min-w-0 bg-transparent py-3 text-sm text-text-primary outline-none placeholder:text-text-muted"
+                            className={inputClassName}
                         />
 
                         <button
@@ -215,7 +222,7 @@ const LoginPage = () => {
                 <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-primary/20 transition-all hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary disabled:cursor-not-allowed disabled:opacity-60"
+                    className="group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand-primary px-5 py-3 text-sm font-bold text-white shadow-md shadow-brand-primary/15 transition-all duration-200 hover:bg-brand-hover hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     {isSubmitting ? "Signing in..." : "Sign in"}
 
