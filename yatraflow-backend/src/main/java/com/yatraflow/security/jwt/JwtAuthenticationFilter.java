@@ -43,74 +43,99 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
 
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain
-    ) throws ServletException, IOException{
+    ) throws ServletException, IOException {
 
         log.info("JWT Filter Executed | URI: {}", request.getRequestURI());
 
-        String token1 = extractTokenFromCookie(request);
-
-        log.info("Access Token Cookie Present: {}", token1 != null);
-
-
         String token = extractTokenFromCookie(request);
 
-        if(token == null){
+        log.info("Access Token Cookie Present: {}", token != null);
 
+        if (token == null) {
             filterChain.doFilter(request, response);
-
             return;
         }
 
-        try{
+        try {
             String username = jwtService.extractUsername(token);
 
             log.info("JWT Username Extracted: {}", username);
 
-            if(SecurityContextHolder.getContext().getAuthentication() == null){
-                User user = userService.getUserByEmail(username);
+            log.info(
+                    "Existing Authentication: {}",
+                    SecurityContextHolder.getContext().getAuthentication()
+            );
 
-                if (Boolean.TRUE.equals(user.getEnabled())
-                        && !Boolean.TRUE.equals(user.getAccountLocked())
-                        && jwtService.isTokenValid(token, user)) {
+            // Fetch user associated with JWT
+            User user = userService.getUserByEmail(username);
 
-                    List<SimpleGrantedAuthority> authorities = jwtService.extractRoles(token)
-                            .stream()
-                            .map(SimpleGrantedAuthority::new)
-                            .toList();
+            // Validate account and JWT
+            if (Boolean.TRUE.equals(user.getEnabled())
+                    && !Boolean.TRUE.equals(user.getAccountLocked())
+                    && jwtService.isTokenValid(token, user)) {
 
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(user,null,authorities);
+                List<SimpleGrantedAuthority> authorities =
+                        jwtService.extractRoles(token)
+                                .stream()
+                                .map(SimpleGrantedAuthority::new)
+                                .toList();
 
-                    SecurityContextHolder
-                            .getContext()
-                            .setAuthentication(authentication);
+                log.info("JWT Extracted Roles: {}", jwtService.extractRoles(token));
+                log.info("Granted Authorities: {}", authorities);
 
-                    log.info("Security Context Authentication Set: {}",
-                            SecurityContextHolder.getContext().getAuthentication() != null);
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                user,
+                                null,
+                                authorities
+                        );
 
-                    log.debug("JWT authentication successful for user: {}" ,username);
-                }
+                // Set JWT authentication, replacing existing OAuth2 authentication
+                SecurityContextHolder.getContext()
+                        .setAuthentication(authentication);
+
+                log.info(
+                        "Authenticated Authorities: {}",
+                        SecurityContextHolder.getContext()
+                                .getAuthentication()
+                                .getAuthorities()
+                );
+
+                log.info(
+                        "Security Context Authentication Set: {}",
+                        SecurityContextHolder.getContext().getAuthentication() != null
+                );
+
+                log.debug("JWT authentication successful for user: {}", username);
             }
-        } catch (RuntimeException ex){
 
-            log.debug("JWT authentication failed for request: {}",
-                    request.getRequestURI(),ex);
+        } catch (RuntimeException ex) {
+
+            log.debug(
+                    "JWT authentication failed for request: {}",
+                    request.getRequestURI(),
+                    ex
+            );
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
 
-            response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"Invalid or expired authentication token.\"}");
+            response.getWriter().write(
+                    "{\"error\":\"Unauthorized\",\"message\":\"Invalid or expired authentication token.\"}"
+            );
 
             return;
         }
 
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
+
 
 
 
