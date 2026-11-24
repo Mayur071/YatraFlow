@@ -1,6 +1,7 @@
 package com.yatraflow.admin.dto.request;
 
 import com.yatraflow.admin.enums.LocationType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,6 +46,7 @@ public class UpdateLocationRequest {
 
     private Long parentLocationId;
 
-    private List<LocationIdentifierRequest> identifiers;
+    @NotNull(message = "Identifiers list must not be null")
+    private List< @Valid LocationIdentifierRequest> identifiers;
 
 }

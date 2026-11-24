@@ -1,5 +1,4 @@
-
-package com.yatraflow.admin.service.impl;
+package com.yatraflow.admin.service;
 
 import com.yatraflow.admin.dto.request.CreateLocationRequest;
 import com.yatraflow.admin.dto.request.LocationIdentifierRequest;
@@ -7,12 +6,13 @@ import com.yatraflow.admin.dto.request.UpdateLocationRequest;
 import com.yatraflow.admin.dto.response.LocationResponse;
 import com.yatraflow.admin.entity.Location;
 import com.yatraflow.admin.entity.LocationIdentifier;
+import com.yatraflow.admin.enums.LocationCodeType;
+import com.yatraflow.admin.enums.LocationType;
 import com.yatraflow.admin.mapper.LocationMapper;
 import com.yatraflow.admin.repository.LocationIdentifierRepository;
 import com.yatraflow.admin.repository.LocationRepository;
 import com.yatraflow.admin.repository.specification.LocationSpecification;
-import com.yatraflow.admin.service.LocationService;
-import com.yatraflow.admin.enums.LocationType;
+import com.yatraflow.exception.BusinessException;
 import com.yatraflow.exception.ResourceAlreadyExistsException;
 import com.yatraflow.exception.ResourceNotFoundException;
 
@@ -30,15 +30,18 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class LocationServiceImpl implements LocationService {
 
     private final LocationRepository locationRepository;
     private final LocationIdentifierRepository locationIdentifierRepository;
     private final LocationMapper locationMapper;
 
+    // =========================================================
     // CREATE LOCATION
+    // =========================================================
+
     @Override
-    @Transactional
     public LocationResponse createLocation(CreateLocationRequest request) {
 
         Location location = new Location();
@@ -56,24 +59,21 @@ public class LocationServiceImpl implements LocationService {
             location.setParentLocation(parentLocation);
         }
 
-        if (request.getIdentifiers() != null
-                && !request.getIdentifiers().isEmpty()) {
-
-            validateAndAddIdentifiers(
-                    location,
-                    request.getIdentifiers(),
-                    null
-            );
-        }
+        validateAndAddIdentifiers(
+                location,
+                request.getIdentifiers()
+        );
 
         Location savedLocation = locationRepository.save(location);
 
         return locationMapper.toResponse(savedLocation);
     }
 
+    // =========================================================
     // UPDATE LOCATION
+    // =========================================================
+
     @Override
-    @Transactional
     public LocationResponse updateLocation(
             Long locationId,
             UpdateLocationRequest request
@@ -83,7 +83,18 @@ public class LocationServiceImpl implements LocationService {
 
         locationMapper.updateLocationFields(location, request);
 
-        if (request.getParentLocationId() != null) {
+        if (location.getType() == LocationType.CITY) {
+
+            if (request.getParentLocationId() != null) {
+
+                throw new BusinessException(
+                        "CITY locations cannot have a parent location."
+                );
+            }
+
+            location.setParentLocation(null);
+
+        } else if (request.getParentLocationId() != null) {
 
             Location parentLocation = findLocationById(
                     request.getParentLocationId()
@@ -94,26 +105,24 @@ public class LocationServiceImpl implements LocationService {
             location.setParentLocation(parentLocation);
 
         } else {
+
             location.setParentLocation(null);
         }
 
-        if (request.getIdentifiers() != null) {
-
-            synchronizeIdentifiers(
-                    location,
-                    request.getIdentifiers()
-            );
-
-        } else {
-            location.getIdentifiers().clear();
-        }
+        synchronizeIdentifiers(
+                location,
+                request.getIdentifiers()
+        );
 
         Location updatedLocation = locationRepository.save(location);
 
         return locationMapper.toResponse(updatedLocation);
     }
 
+    // =========================================================
     // GET LOCATION BY ID
+    // =========================================================
+
     @Override
     @Transactional(readOnly = true)
     public LocationResponse getLocationById(Long locationId) {
@@ -123,7 +132,10 @@ public class LocationServiceImpl implements LocationService {
         return locationMapper.toResponse(location);
     }
 
-    // SEARCH + FILTER + PAGINATION + SORTING
+    // =========================================================
+    // SEARCH LOCATIONS
+    // =========================================================
+
     @Override
     @Transactional(readOnly = true)
     public Page<LocationResponse> searchLocations(
@@ -136,46 +148,76 @@ public class LocationServiceImpl implements LocationService {
     ) {
 
         return locationRepository.findAll(
-                LocationSpecification.filters(
-                        search,
-                        type,
-                        country,
-                        state,
-                        active
-                ),
-                pageable
-        ).map(locationMapper::toResponse);
+                        LocationSpecification.filters(
+                                search,
+                                type,
+                                country,
+                                state,
+                                active
+                        ),
+                        pageable
+                )
+                .map(locationMapper::toResponse);
     }
 
+    // =========================================================
     // ACTIVATE LOCATION
+    // =========================================================
+
     @Override
-    @Transactional
     public LocationResponse activateLocation(Long locationId) {
 
         Location location = findLocationById(locationId);
 
+        if (location.isActive()) {
+            return locationMapper.toResponse(location);
+        }
+
         location.setActive(true);
 
-        Location updatedLocation = locationRepository.save(location);
+        Location activatedLocation = locationRepository.save(location);
 
-        return locationMapper.toResponse(updatedLocation);
+        return locationMapper.toResponse(activatedLocation);
     }
 
+    // =========================================================
     // DEACTIVATE LOCATION
+    // =========================================================
+
     @Override
-    @Transactional
     public LocationResponse deactivateLocation(Long locationId) {
 
         Location location = findLocationById(locationId);
 
+        if (!location.isActive()) {
+            return locationMapper.toResponse(location);
+        }
+
+        boolean hasActiveChildren =
+                locationRepository.existsByParentLocation_IdAndActiveTrue(
+                        locationId
+                );
+
+        if (hasActiveChildren) {
+
+            throw new BusinessException(
+                    "Location cannot be deactivated while active child locations exist."
+            );
+        }
+
         location.setActive(false);
 
-        Location updatedLocation = locationRepository.save(location);
+        Location deactivatedLocation = locationRepository.save(location);
 
-        return locationMapper.toResponse(updatedLocation);
+        return locationMapper.toResponse(deactivatedLocation);
     }
 
-    // REUSABLE LOCATION LOOKUP
+
+
+    // =========================================================
+    // FIND LOCATION BY ID
+    // =========================================================
+
     private Location findLocationById(Long locationId) {
 
         return locationRepository.findById(locationId)
@@ -184,23 +226,34 @@ public class LocationServiceImpl implements LocationService {
                 ));
     }
 
-    // PARENT VALIDATION
+    // =========================================================
+    // PARENT LOCATION VALIDATION
+    // =========================================================
+
     private void validateParentLocation(
             Location parentLocation,
             Long currentLocationId
     ) {
 
         if (!parentLocation.isActive()) {
-            throw new IllegalArgumentException(
-                    "Inactive location cannot be used as a parent"
+
+            throw new BusinessException(
+                    "Inactive location cannot be assigned as a parent."
             );
         }
 
         if (currentLocationId != null
                 && parentLocation.getId().equals(currentLocationId)) {
 
-            throw new IllegalArgumentException(
-                    "Location cannot be its own parent"
+            throw new BusinessException(
+                    "A location cannot be its own parent."
+            );
+        }
+
+        if (parentLocation.getType() != LocationType.CITY) {
+
+            throw new BusinessException(
+                    "Only CITY locations can be assigned as parent locations."
             );
         }
 
@@ -211,8 +264,8 @@ public class LocationServiceImpl implements LocationService {
             if (currentLocationId != null
                     && ancestor.getId().equals(currentLocationId)) {
 
-                throw new IllegalArgumentException(
-                        "Circular location hierarchy is not allowed"
+                throw new BusinessException(
+                        "Circular location hierarchy is not allowed."
                 );
             }
 
@@ -220,51 +273,42 @@ public class LocationServiceImpl implements LocationService {
         }
     }
 
-    // CREATE IDENTIFIERS WITH DUPLICATE VALIDATION
+    // =========================================================
+    // CREATE IDENTIFIERS
+    // =========================================================
+
     private void validateAndAddIdentifiers(
             Location location,
-            List<LocationIdentifierRequest> identifiers,
-            Long currentLocationId
+            List<LocationIdentifierRequest> identifierRequests
     ) {
 
-        Set<String> requestedKeys = new HashSet<>();
+        if (identifierRequests == null || identifierRequests.isEmpty()) {
+            return;
+        }
 
-        for (LocationIdentifierRequest request : identifiers) {
+        Set<String> uniqueIdentifierKeys = new HashSet<>();
+
+        for (LocationIdentifierRequest request : identifierRequests) {
 
             String normalizedCode = normalizeCode(request.getCode());
 
             String identifierKey = createIdentifierKey(
-                    request.getCodeType().name(),
+                    request.getCodeType(),
                     normalizedCode
             );
 
-            if (!requestedKeys.add(identifierKey)) {
+            if (!uniqueIdentifierKeys.add(identifierKey)) {
 
                 throw new ResourceAlreadyExistsException(
-                        "Duplicate identifier in request: " + normalizedCode
+                        "Duplicate identifier provided: " + normalizedCode
                 );
             }
 
-            LocationIdentifier existingIdentifier =
-                    locationIdentifierRepository.findByCodeAndCodeType(
-                            normalizedCode,
-                            request.getCodeType()
-                    ).orElse(null);
-
-            if (existingIdentifier != null) {
-
-                Long existingLocationId =
-                        existingIdentifier.getLocation().getId();
-
-                if (currentLocationId == null
-                        || !existingLocationId.equals(currentLocationId)) {
-
-                    throw new ResourceAlreadyExistsException(
-                            "Location identifier already exists: "
-                                    + normalizedCode
-                    );
-                }
-            }
+            validateIdentifierAvailability(
+                    request.getCodeType(),
+                    normalizedCode,
+                    null
+            );
 
             LocationIdentifier identifier =
                     locationMapper.toIdentifierEntity(request);
@@ -275,81 +319,76 @@ public class LocationServiceImpl implements LocationService {
         }
     }
 
-    // UPDATE IDENTIFIERS
+    // =========================================================
+    // SYNCHRONIZE IDENTIFIERS
+    // =========================================================
+
     private void synchronizeIdentifiers(
             Location location,
-            List<LocationIdentifierRequest> requestedIdentifiers
+            List<LocationIdentifierRequest> identifierRequests
     ) {
 
-        Set<String> requestedKeys = new HashSet<>();
+        if (identifierRequests == null) {
 
-        // Validate duplicates in request and database
-        for (LocationIdentifierRequest request : requestedIdentifiers) {
+            throw new BusinessException(
+                    "Identifiers list must not be null."
+            );
+        }
+
+        Set<String> requestedIdentifierKeys = new HashSet<>();
+
+        for (LocationIdentifierRequest request : identifierRequests) {
 
             String normalizedCode = normalizeCode(request.getCode());
 
             String identifierKey = createIdentifierKey(
-                    request.getCodeType().name(),
+                    request.getCodeType(),
                     normalizedCode
             );
 
-            if (!requestedKeys.add(identifierKey)) {
+            if (!requestedIdentifierKeys.add(identifierKey)) {
 
                 throw new ResourceAlreadyExistsException(
-                        "Duplicate identifier in request: " + normalizedCode
+                        "Duplicate identifier provided: " + normalizedCode
                 );
             }
 
-            LocationIdentifier existingIdentifier =
-                    locationIdentifierRepository.findByCodeAndCodeType(
-                            normalizedCode,
-                            request.getCodeType()
-                    ).orElse(null);
-
-            if (existingIdentifier != null
-                    && !existingIdentifier.getLocation().getId()
-                    .equals(location.getId())) {
-
-                throw new ResourceAlreadyExistsException(
-                        "Location identifier already exists: "
-                                + normalizedCode
-                );
-            }
+            validateIdentifierAvailability(
+                    request.getCodeType(),
+                    normalizedCode,
+                    location.getId()
+            );
         }
 
-        // Determine identifiers that must be removed
         List<LocationIdentifier> identifiersToRemove =
-                location.getIdentifiers().stream()
-                        .filter(identifier ->
-                                !requestedKeys.contains(
-                                        createIdentifierKey(
-                                                identifier.getCodeType().name(),
-                                                normalizeCode(
-                                                        identifier.getCode()
-                                                )
-                                        )
-                                )
-                        )
+                location.getIdentifiers()
+                        .stream()
+                        .filter(identifier -> {
+
+                            String existingKey = createIdentifierKey(
+                                    identifier.getCodeType(),
+                                    normalizeCode(identifier.getCode())
+                            );
+
+                            return !requestedIdentifierKeys.contains(existingKey);
+                        })
                         .toList();
 
-        // Remove through entity relationship helper
         identifiersToRemove.forEach(location::removeIdentifier);
 
-        // Add only identifiers that are not already associated
-        for (LocationIdentifierRequest request : requestedIdentifiers) {
+        for (LocationIdentifierRequest request : identifierRequests) {
 
             String normalizedCode = normalizeCode(request.getCode());
 
-            boolean alreadyPresent = location.getIdentifiers()
+            boolean alreadyExists = location.getIdentifiers()
                     .stream()
                     .anyMatch(identifier ->
-                            identifier.getCodeType()
-                                    == request.getCodeType()
+                            identifier.getCodeType() == request.getCodeType()
                                     && normalizeCode(identifier.getCode())
                                     .equals(normalizedCode)
                     );
 
-            if (!alreadyPresent) {
+            if (!alreadyExists) {
 
                 LocationIdentifier identifier =
                         locationMapper.toIdentifierEntity(request);
@@ -361,18 +400,59 @@ public class LocationServiceImpl implements LocationService {
         }
     }
 
-    // CODE NORMALIZATION
+    // =========================================================
+    // IDENTIFIER AVAILABILITY
+    // =========================================================
+
+    private void validateIdentifierAvailability(
+            LocationCodeType codeType,
+            String normalizedCode,
+            Long currentLocationId
+    ) {
+
+        locationIdentifierRepository
+                .findByCodeAndCodeType(normalizedCode, codeType)
+                .ifPresent(existingIdentifier -> {
+
+                    Long existingLocationId =
+                            existingIdentifier.getLocation().getId();
+
+                    if (currentLocationId == null
+                            || !existingLocationId.equals(currentLocationId)) {
+
+                        throw new ResourceAlreadyExistsException(
+                                "Identifier already exists: "
+                                        + normalizedCode
+                                        + " ("
+                                        + codeType
+                                        + ")"
+                        );
+                    }
+                });
+    }
+
+    // =========================================================
+    // NORMALIZE IDENTIFIER CODE
+    // =========================================================
+
     private String normalizeCode(String code) {
+
+        if (code == null) {
+            return null;
+        }
 
         return code.trim().toUpperCase(Locale.ROOT);
     }
 
-    // COMPOSITE IDENTIFIER KEY
+    // =========================================================
+    // CREATE IDENTIFIER KEY
+    // =========================================================
+
     private String createIdentifierKey(
-            String codeType,
-            String code
+            LocationCodeType codeType,
+            String normalizedCode
     ) {
 
-        return codeType + ":" + code;
+        return codeType.name() + ":" + normalizedCode;
     }
 }

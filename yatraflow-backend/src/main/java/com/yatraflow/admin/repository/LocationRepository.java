@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LocationRepository extends JpaRepository<Location, Long>, JpaSpecificationExecutor<Location> {
+
+    boolean existsByParentLocation_IdAndActiveTrue(Long parentLocationId);
 }
