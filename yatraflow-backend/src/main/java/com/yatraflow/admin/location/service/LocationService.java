@@ -1,9 +1,9 @@
-package com.yatraflow.admin.service;
+package com.yatraflow.admin.location.service;
 
-import com.yatraflow.admin.dto.request.CreateLocationRequest;
-import com.yatraflow.admin.dto.request.UpdateLocationRequest;
-import com.yatraflow.admin.dto.response.LocationResponse;
-import com.yatraflow.admin.enums.LocationType;
+import com.yatraflow.admin.location.dto.request.CreateLocationRequest;
+import com.yatraflow.admin.location.dto.request.UpdateLocationRequest;
+import com.yatraflow.admin.location.dto.response.LocationResponse;
+import com.yatraflow.admin.location.enums.LocationType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

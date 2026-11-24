@@ -1,12 +1,12 @@
-package com.yatraflow.admin.mapper;
+package com.yatraflow.admin.location.mapper;
 
-import com.yatraflow.admin.dto.request.CreateLocationRequest;
-import com.yatraflow.admin.dto.request.LocationIdentifierRequest;
-import com.yatraflow.admin.dto.request.UpdateLocationRequest;
-import com.yatraflow.admin.dto.response.LocationIdentifierResponse;
-import com.yatraflow.admin.dto.response.LocationResponse;
-import com.yatraflow.admin.entity.Location;
-import com.yatraflow.admin.entity.LocationIdentifier;
+import com.yatraflow.admin.location.dto.request.CreateLocationRequest;
+import com.yatraflow.admin.location.dto.request.LocationIdentifierRequest;
+import com.yatraflow.admin.location.dto.request.UpdateLocationRequest;
+import com.yatraflow.admin.location.dto.response.LocationIdentifierResponse;
+import com.yatraflow.admin.location.dto.response.LocationResponse;
+import com.yatraflow.admin.location.entity.Location;
+import com.yatraflow.admin.location.entity.LocationIdentifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

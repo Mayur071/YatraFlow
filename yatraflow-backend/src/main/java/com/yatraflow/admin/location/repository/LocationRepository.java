@@ -1,6 +1,6 @@
-package com.yatraflow.admin.repository;
+package com.yatraflow.admin.location.repository;
 
-import com.yatraflow.admin.entity.Location;
+import com.yatraflow.admin.location.entity.Location;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;

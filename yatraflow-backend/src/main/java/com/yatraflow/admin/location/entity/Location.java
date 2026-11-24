@@ -1,6 +1,6 @@
-package com.yatraflow.admin.entity;
+package com.yatraflow.admin.location.entity;
 
-import com.yatraflow.admin.enums.LocationType;
+import com.yatraflow.admin.location.enums.LocationType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

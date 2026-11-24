@@ -1,6 +1,6 @@
-package com.yatraflow.admin.dto.response;
+package com.yatraflow.admin.location.dto.response;
 
-import com.yatraflow.admin.enums.LocationType;
+import com.yatraflow.admin.location.enums.LocationType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

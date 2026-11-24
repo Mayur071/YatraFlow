@@ -1,6 +1,7 @@
-package com.yatraflow.admin.dto.request;
+package com.yatraflow.admin.location.dto.request;
 
-import com.yatraflow.admin.enums.LocationType;
+import com.yatraflow.admin.location.enums.LocationType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class CreateLocationRequest {
+public class UpdateLocationRequest {
 
     @NotBlank(message = "Location name is required")
     @Size(max = 150)
@@ -45,6 +46,7 @@ public class CreateLocationRequest {
 
     private Long parentLocationId;
 
-    private List<LocationIdentifierRequest> identifiers;
+    @NotNull(message = "Identifiers list must not be null")
+    private List< @Valid LocationIdentifierRequest> identifiers;
 
 }

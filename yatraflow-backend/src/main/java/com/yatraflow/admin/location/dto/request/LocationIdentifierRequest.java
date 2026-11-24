@@ -1,6 +1,6 @@
-package com.yatraflow.admin.dto.request;
+package com.yatraflow.admin.location.dto.request;
 
-import com.yatraflow.admin.enums.LocationCodeType;
+import com.yatraflow.admin.location.enums.LocationCodeType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

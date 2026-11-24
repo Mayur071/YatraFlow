@@ -1,4 +1,4 @@
-package com.yatraflow.admin.enums;
+package com.yatraflow.admin.location.enums;
 
 public enum LocationCodeType {
 

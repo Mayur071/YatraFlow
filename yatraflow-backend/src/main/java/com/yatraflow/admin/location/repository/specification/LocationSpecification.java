@@ -1,8 +1,8 @@
 
-package com.yatraflow.admin.repository.specification;
+package com.yatraflow.admin.location.repository.specification;
 
-import com.yatraflow.admin.entity.Location;
-import com.yatraflow.admin.enums.LocationType;
+import com.yatraflow.admin.location.entity.Location;
+import com.yatraflow.admin.location.enums.LocationType;
 
 import org.springframework.data.jpa.domain.Specification;
 
