@@ -18,7 +18,7 @@ import java.net.URI;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/admin/locations")
+@RequestMapping("/api/v1/admin/locations")
 @RequiredArgsConstructor
 public class LocationController {
 
