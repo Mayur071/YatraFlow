@@ -34,7 +34,6 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Hotel {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -126,5 +125,49 @@ public class Hotel {
     @Builder.Default
     private List<HotelRoomType> roomTypes = new ArrayList<>();
 
+    @OneToMany(
+            mappedBy = "hotel",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<HotelImage> images = new ArrayList<>();
 
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(nullable = false)
+    private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        Instant now = Instant.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
+
+    public void addRoomType(HotelRoomType roomType) {
+        roomTypes.add(roomType);
+        roomType.setHotel(this);
+    }
+
+    public void removeRoomType(HotelRoomType roomType) {
+        roomTypes.remove(roomType);
+        roomType.setHotel(null);
+    }
+
+    public void addImage(HotelImage image) {
+        images.add(image);
+        image.setHotel(this);
+    }
+
+    public void removeImage(HotelImage image) {
+        images.remove(image);
+        image.setHotel(null);
+    }
 }
